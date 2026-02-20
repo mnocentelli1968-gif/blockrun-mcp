@@ -335,15 +335,15 @@ echo '{"jsonrpc":"2.0","method":"tools/list","id":1}' | node dist/index.js
 ## Links
 
 - **Website:** [blockrun.ai](https://blockrun.ai)
-- **Documentation:** [docs.blockrun.ai](https://docs.blockrun.ai)
+- **Documentation:** [GitHub Docs](https://github.com/BlockRunAI/awesome-blockrun/tree/main/docs)
 - **Pricing:** [blockrun.ai/pricing](https://blockrun.ai/pricing)
 - **GitHub:** [github.com/blockrunai](https://github.com/blockrunai)
-- **Twitter:** [@blockaborama](https://twitter.com/blockaborama)
+- **Twitter:** [@BlockRunAI](https://x.com/BlockRunAI)
 
 ## Support
 
 - **Issues:** [GitHub Issues](https://github.com/blockrunai/blockrun-mcp/issues)
-- **Discord:** [Join our Discord](https://discord.gg/blockrun)
+- **Telegram:** [Join our Telegram](https://t.me/+mroQv4-4hGgzOGUx)
 - **Email:** hello@blockrun.ai
 
 ## License

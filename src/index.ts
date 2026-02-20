@@ -35,11 +35,11 @@ const BASE_CHAIN_ID = "8453";
 
 // Model categories for smart routing
 const MODEL_TIERS = {
-  fast: ["google/gemini-2.5-flash", "openai/gpt-4o-mini", "deepseek/deepseek-chat"],
-  balanced: ["openai/gpt-4o", "anthropic/claude-sonnet-4", "google/gemini-2.5-pro"],
-  powerful: ["openai/gpt-5.2", "anthropic/claude-opus-4", "openai/o3"],
-  cheap: ["google/gemini-2.5-flash", "deepseek/deepseek-chat", "openai/gpt-4o-mini"],
-  reasoning: ["openai/o3", "openai/o1", "deepseek/deepseek-reasoner"],
+  fast: ["google/gemini-2.5-flash", "openai/gpt-4o-mini", "deepseek/deepseek-chat", "xai/grok-4-1-fast-non-reasoning"],
+  balanced: ["openai/gpt-4o", "anthropic/claude-sonnet-4", "google/gemini-2.5-pro", "xai/grok-4-1-fast-reasoning"],
+  powerful: ["openai/gpt-5.2", "anthropic/claude-opus-4.5", "anthropic/claude-opus-4", "openai/o3"],
+  cheap: ["nvidia/gpt-oss-120b", "google/gemini-2.5-flash", "deepseek/deepseek-chat", "openai/gpt-4o-mini"],
+  reasoning: ["openai/o3", "openai/o1", "openai/o4-mini", "deepseek/deepseek-reasoner", "xai/grok-4-1-fast-reasoning"],
 } as const;
 
 type RoutingMode = keyof typeof MODEL_TIERS;
