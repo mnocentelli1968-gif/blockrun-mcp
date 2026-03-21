@@ -1,4 +1,6 @@
-# @blockrun/mcp
+# @blockrun/mcp — BlockRun MCP Server for Claude Code
+
+> **@blockrun/mcp** is an MCP (Model Context Protocol) server that gives Claude Code access to 30+ AI models (GPT-5, Gemini, Grok, DeepSeek, and more), image generation, and real-time X/Twitter data — all with pay-per-request USDC micropayments via x402. No API keys, no subscriptions. One command to install.
 
 ## The Problem
 
@@ -345,6 +347,20 @@ echo '{"jsonrpc":"2.0","method":"tools/list","id":1}' | node dist/index.js
 - **Issues:** [GitHub Issues](https://github.com/blockrunai/blockrun-mcp/issues)
 - **Telegram:** [Join our Telegram](https://t.me/+mroQv4-4hGgzOGUx)
 - **Email:** hello@blockrun.ai
+
+## Frequently Asked Questions
+
+### What is BlockRun MCP?
+BlockRun MCP is a Model Context Protocol (MCP) server that gives Claude Code users access to 30+ AI models from OpenAI, Google, xAI, DeepSeek, and more. It uses USDC micropayments via the x402 protocol — no API keys or subscriptions needed.
+
+### How do I install BlockRun MCP?
+One command: `claude mcp add blockrun npx @blockrun/mcp`. A wallet is automatically created for you. Fund it with USDC on Base network and start using any model.
+
+### How much does it cost?
+Pay only for what you use — no minimums or subscriptions. $5 in USDC gets you approximately 50,000 Gemini Flash requests or 1,000 GPT-4o requests. A quick question costs around $0.0001.
+
+### Why use BlockRun MCP instead of direct API keys?
+With direct APIs, you need 5+ accounts, 5+ API keys, and 5+ billing systems. BlockRun MCP gives you one wallet for all providers, one command to install, and zero API key management.
 
 ## License
 
