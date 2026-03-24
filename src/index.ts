@@ -35,11 +35,11 @@ const BASE_CHAIN_ID = "8453";
 
 // Model categories for smart routing
 const MODEL_TIERS = {
-  fast: ["google/gemini-2.5-flash", "openai/gpt-4o-mini", "deepseek/deepseek-chat", "xai/grok-4-1-fast-non-reasoning"],
-  balanced: ["openai/gpt-4o", "anthropic/claude-sonnet-4", "google/gemini-2.5-pro", "xai/grok-4-1-fast-reasoning"],
-  powerful: ["openai/gpt-5.2", "anthropic/claude-opus-4.5", "anthropic/claude-opus-4", "openai/o3"],
-  cheap: ["nvidia/gpt-oss-120b", "google/gemini-2.5-flash", "deepseek/deepseek-chat", "openai/gpt-4o-mini"],
-  reasoning: ["openai/o3", "openai/o1", "openai/o4-mini", "deepseek/deepseek-reasoner", "xai/grok-4-1-fast-reasoning"],
+  fast: ["google/gemini-2.5-flash", "openai/gpt-5-mini", "deepseek/deepseek-chat", "google/gemini-3-flash-preview"],
+  balanced: ["openai/gpt-5.4", "anthropic/claude-sonnet-4.6", "google/gemini-2.5-pro", "openai/gpt-5.3"],
+  powerful: ["openai/gpt-5.4", "anthropic/claude-opus-4.6", "anthropic/claude-opus-4.5", "openai/o3"],
+  cheap: ["nvidia/gpt-oss-120b", "google/gemini-2.5-flash", "deepseek/deepseek-chat", "openai/gpt-5.4-nano"],
+  reasoning: ["openai/o3", "openai/o1", "openai/o3-mini", "deepseek/deepseek-reasoner"],
 } as const;
 
 type RoutingMode = keyof typeof MODEL_TIERS;
@@ -439,19 +439,19 @@ server.registerTool(
     description: `Chat with AI models via BlockRun. Supports 30+ models with pay-per-request micropayments.
 
 Two ways to use:
-1. Specify a model directly: model: "openai/gpt-4o"
+1. Specify a model directly: model: "openai/gpt-5.4"
 2. Use smart routing: mode: "fast" | "balanced" | "powerful" | "cheap" | "reasoning"
 
 Popular models:
-- openai/gpt-5.2, openai/gpt-4o, openai/gpt-4o-mini
-- anthropic/claude-opus-4, anthropic/claude-sonnet-4
+- openai/gpt-5.4, openai/gpt-5.4-mini, openai/gpt-5.4-nano
+- anthropic/claude-opus-4.6, anthropic/claude-sonnet-4.6
 - google/gemini-2.5-pro, google/gemini-2.5-flash
 - deepseek/deepseek-chat (very affordable)
 
 Smart routing modes:
-- fast: Gemini Flash, GPT-4o-mini (quickest)
-- balanced: GPT-4o, Claude Sonnet (good default)
-- powerful: GPT-5.2, Claude Opus 4 (best quality)
+- fast: Gemini Flash, GPT-5 Mini (quickest)
+- balanced: GPT-5.4, Claude Sonnet 4.6 (good default)
+- powerful: GPT-5.4, Claude Opus 4.6 (best quality)
 - cheap: DeepSeek, Gemini Flash (lowest cost)
 - reasoning: o3, o1 (complex logic)
 
@@ -546,10 +546,11 @@ server.registerTool(
     if (category && category !== "all") {
       if (category === "image") {
         models = models.filter(m => m.id.includes("dall-e") || m.id.includes("flux") || m.id.includes("banana"));
-      } else if (category === "reasoning") {
-        models = models.filter(m => m.id.includes("/o1") || m.id.includes("/o3") || m.id.includes("reasoner"));
       } else if (category === "embedding") {
         models = models.filter(m => m.id.includes("embed"));
+      } else {
+        // Use categories from API for chat/reasoning filtering
+        models = models.filter(m => m.categories?.includes(category));
       }
     }
 
@@ -557,7 +558,9 @@ server.registerTool(
       const input = m.inputPrice ? `$${m.inputPrice}/M in` : "";
       const output = m.outputPrice ? `$${m.outputPrice}/M out` : "";
       const pricing = [input, output].filter(Boolean).join(", ");
-      return `- ${m.id}${pricing ? ` (${pricing})` : ""}`;
+      const ctx = m.contextWindow ? ` | ${Math.round(m.contextWindow / 1000)}K ctx` : "";
+      const cats = m.categories?.length ? ` [${m.categories.join(", ")}]` : "";
+      return `- ${m.id}${pricing ? ` (${pricing})` : ""}${ctx}${cats}`;
     });
 
     return {
