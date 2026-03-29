@@ -1,6 +1,6 @@
 {
   "name": "@blockrun/mcp",
-  "version": "0.4.2",
+  "version": "0.5.0",
   "mcpName": "io.github.BlockRunAI/blockrun-mcp",
   "description": "BlockRun MCP Server - Access 30+ AI models via x402 micropayments. No API keys needed.",
   "type": "module",
@@ -44,7 +44,7 @@
     "url": "https://github.com/blockrunai/blockrun-mcp/issues"
   },
   "dependencies": {
-    "@blockrun/llm": "^1.4.3",
+    "@blockrun/llm": "^1.5.0",
     "@modelcontextprotocol/sdk": "^1.0.0",
     "jimp": "^1.6.0",
     "open": "^11.0.0",
