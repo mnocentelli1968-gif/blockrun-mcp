@@ -7,7 +7,7 @@ export function registerSwapTool(server: McpServer): void {
   server.registerTool(
     "blockrun_swap",
     {
-      description: `Execute token swaps on Base network using 0x aggregator.
+      description: `Get token swap quotes on Base network using 0x aggregator.
 
 ⚠️ REAL MONEY - requires user confirmation before execution.
 
@@ -44,79 +44,116 @@ Example: blockrun_swap({ from: "USDC", to: "ETH", amount: 10 })`,
       const decimals = fromUpper === "USDC" || fromUpper === "USDbC" ? 6 : 18;
       const amountWei = BigInt(Math.floor(amount * (10 ** decimals)));
 
+      const quoteUrl = `${ZERO_X_API}/quote?` + new URLSearchParams({
+        sellToken: fromToken,
+        buyToken: toToken,
+        sellAmount: amountWei.toString(),
+        slippagePercentage: (slippage / 100).toString(),
+        chainId: BASE_CHAIN_ID_NUM.toString(),
+      });
+
+      let quoteData: any;
       try {
-        // Get quote from 0x
-        const quoteUrl = `${ZERO_X_API}/quote?` + new URLSearchParams({
-          sellToken: fromToken,
-          buyToken: toToken,
-          sellAmount: amountWei.toString(),
-          slippagePercentage: (slippage / 100).toString(),
-          chainId: BASE_CHAIN_ID_NUM.toString(),
+        const response = await fetch(quoteUrl, {
+          headers: {
+            "Content-Type": "application/json",
+          },
         });
 
-        // Note: 0x API requires API key for production
-        // For demo, return simulated quote
-        const estimatedOutput = fromUpper === "USDC"
-          ? amount / 3300 // Rough USDC to ETH
-          : amount * 3300; // Rough ETH to USDC
+        const text = await response.text();
 
-        const quoteResult = `[Swap Quote: ${fromUpper} → ${toUpper}]
-
-Sell: ${amount} ${fromUpper}
-Buy (est): ~${estimatedOutput.toFixed(6)} ${toUpper}
-Slippage: ${slippage}%
-Network: Base
-
-${execute ? "⚠️ EXECUTION REQUESTED" : "💡 Set execute: true to swap"}
-
-Note: Full 0x integration requires API key.
-For demo, this shows the quote flow.
-
-To execute:
-1. User confirms the swap
-2. Wallet signs transaction
-3. Swap executes on-chain
-4. Returns tx hash`;
-
-        if (execute) {
-          // In production: would execute the swap
-          // For now, return what would happen
+        if (!response.ok) {
           return {
             content: [{
               type: "text",
-              text: `⚠️ SWAP EXECUTION DISABLED FOR SAFETY
-
-To enable real swaps:
-1. Add 0x API key
-2. Implement transaction signing
-3. Add confirmation flow
-
-This is a demo. The swap would:
-• Sell ${amount} ${fromUpper}
-• Buy ~${estimatedOutput.toFixed(6)} ${toUpper}
-• Gas: ~$0.01 on Base`,
+              text: `Swap quote failed: 0x API returned HTTP ${response.status}.\n\nResponse: ${text}\n\nIf you need swap access, ensure your wallet has USDC balance (run blockrun_wallet action:'setup') for authenticated API access.`,
             }],
+            isError: true,
           };
         }
 
+        try {
+          quoteData = JSON.parse(text);
+        } catch {
+          return {
+            content: [{
+              type: "text",
+              text: `Swap quote failed: Could not parse 0x API response.\n\nRaw response: ${text.slice(0, 500)}`,
+            }],
+            isError: true,
+          };
+        }
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
         return {
-          content: [{ type: "text", text: quoteResult }],
-          structuredContent: {
-            from: fromUpper,
-            to: toUpper,
-            sellAmount: amount,
-            buyAmount: estimatedOutput,
-            slippage,
-            execute: false,
-          },
-        };
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : String(error);
-        return {
-          content: [{ type: "text", text: `Swap error: ${errorMessage}` }],
+          content: [{
+            type: "text",
+            text: `Swap quote failed: Network error contacting 0x API — ${msg}.\n\nDo not use estimated prices for trading decisions.`,
+          }],
           isError: true,
         };
       }
+
+      // Extract real quote data from 0x response
+      const buyAmountRaw = quoteData.buyAmount;
+      const buyDecimals = toUpper === "USDC" || toUpper === "USDbC" ? 6 : 18;
+      const buyAmount = buyAmountRaw
+        ? Number(BigInt(buyAmountRaw)) / (10 ** buyDecimals)
+        : null;
+
+      const price = quoteData.price;
+      const guaranteedPrice = quoteData.guaranteedPrice;
+      const estimatedGas = quoteData.estimatedGas;
+      const gas = quoteData.gas;
+
+      if (execute) {
+        return {
+          content: [{
+            type: "text",
+            text: `[Swap Quote: ${fromUpper} → ${toUpper}]
+
+Sell: ${amount} ${fromUpper}
+Buy: ${buyAmount !== null ? buyAmount.toFixed(6) : "N/A"} ${toUpper}
+Price: ${price || "N/A"}
+Guaranteed Price: ${guaranteedPrice || "N/A"}
+Slippage: ${slippage}%
+Estimated Gas: ${estimatedGas || gas || "N/A"}
+Network: Base
+
+⚠️ EXECUTION REQUESTED — transaction signing not yet implemented.
+To execute this swap, implement wallet signing with the 'data', 'to', and 'value' fields from the 0x quote response.`,
+          }],
+          structuredContent: quoteData,
+        };
+      }
+
+      return {
+        content: [{
+          type: "text",
+          text: `[Swap Quote: ${fromUpper} → ${toUpper}]
+
+Sell: ${amount} ${fromUpper}
+Buy: ${buyAmount !== null ? buyAmount.toFixed(6) : "N/A"} ${toUpper}
+Price: ${price || "N/A"}
+Guaranteed Price: ${guaranteedPrice || "N/A"}
+Slippage: ${slippage}%
+Estimated Gas: ${estimatedGas || gas || "N/A"}
+Network: Base
+
+Set execute: true to proceed with this swap.`,
+        }],
+        structuredContent: {
+          from: fromUpper,
+          to: toUpper,
+          sellAmount: amount,
+          buyAmount,
+          price,
+          guaranteedPrice,
+          slippage,
+          estimatedGas: estimatedGas || gas,
+          rawQuote: quoteData,
+        },
+      };
     }
   );
 }
