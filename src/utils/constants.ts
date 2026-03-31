@@ -48,7 +48,7 @@ export const KNOWN_LABELS: Record<string, string> = {
   "0xd24400ae8bfebb18ca49be86258a3c749cf46853": "Gemini 2",
   "0x6fc82a5fe25a5cdb58bc74600a40a69c065263f8": "Gemini 3",
   "0x61edcdf5bb737adffe5043706e7c5bb1f1a56eea": "Gemini 4",
-  "0x07ee55aa48bb72dcc6e9d78256648900d3": "Gemini 5",
+  "0x07ee55aa48bb72dcc6e9d78256648910de513eca": "Gemini 5",
   "0xdc76cd25977e0a5ae17155770273ad58648900d3": "Coinbase Prime",
   "0xa9d1e08c7793af67e9d92fe308d5697fb81d3e43": "Coinbase 10",
   "0x503828976d22510aad0201ac7ec88293211d23da": "Coinbase 2",
