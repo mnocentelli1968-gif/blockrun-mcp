@@ -25,7 +25,7 @@ export function initializeMcpServer(server: McpServer): void {
 
   // Register all tools
   registerWalletTool(server, budget);
-  registerChatTool(server);
+  registerChatTool(server, budget);
   registerModelsTool(server, modelCache);
   registerImageTool(server);
   registerTwitterTool(server, budget);

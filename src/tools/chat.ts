@@ -4,8 +4,10 @@ import { z } from "zod";
 import { getClient } from "../utils/wallet.js";
 import { formatError } from "../utils/errors.js";
 import { MODEL_TIERS, type RoutingMode } from "../utils/constants.js";
+import { checkBudget, recordSpending } from "../utils/budget.js";
+import type { BudgetState } from "../types.js";
 
-export function registerChatTool(server: McpServer): void {
+export function registerChatTool(server: McpServer, budget: BudgetState): void {
   server.registerTool(
     "blockrun_chat",
     {
@@ -47,14 +49,24 @@ Run blockrun_models for live pricing.`,
         system: z.string().optional().describe("Optional system prompt"),
         max_tokens: z.number().optional().default(1024).describe("Max tokens in response"),
         temperature: z.number().optional().default(1).describe("Creativity 0-2"),
+        agent_id: z.string().optional().describe("Agent identifier. If a budget was delegated for this agent_id via blockrun_wallet action:'delegate', spending is tracked and enforced. The agent is hard-stopped when its budget is exhausted."),
         messages: z.array(z.object({
           role: z.enum(["user", "assistant", "system"]),
           content: z.string(),
         })).optional().describe("Conversation history for multi-turn context. When provided, 'message' is appended as the final user turn. Use with explicit 'model' param (defaults to 'openai/gpt-5.4' if not specified). Note: if you include a role:'system' entry in messages[], do not also pass the system param to avoid duplicate system messages."),
       },
     },
-    async ({ message, model, mode, routing, routing_profile, system, max_tokens, temperature, messages }) => {
+    async ({ message, model, mode, routing, routing_profile, system, max_tokens, temperature, agent_id, messages }) => {
       const llm = getClient();
+
+      // Budget gate: global + per-agent enforcement
+      const budgetCheck = checkBudget(budget, agent_id);
+      if (!budgetCheck.allowed) {
+        return {
+          content: [{ type: "text", text: `${budgetCheck.reason}. Use blockrun_wallet with action: "report" to see usage, or action: "delegate" to increase agent budget.` }],
+          isError: true,
+        };
+      }
 
       // ClawRouter smart routing
       if (routing === "smart") {
@@ -65,6 +77,8 @@ Run blockrun_models for live pricing.`,
             temperature,
             routingProfile: routing_profile,
           });
+          // Record cost from ClawRouter's estimate
+          recordSpending(budget, result.routing.costEstimate || 0.001, agent_id);
           return {
             content: [{ type: "text", text: `[${result.model} | ${result.routing.tier} | $${result.routing.costEstimate.toFixed(4)} | ${Math.round((result.routing.savings ?? 0) * 100)}% savings]\n\n${result.response}` }],
             structuredContent: {
@@ -93,6 +107,7 @@ Run blockrun_models for live pricing.`,
             temperature,
           });
           const reply = result.choices?.[0]?.message?.content || "";
+          recordSpending(budget, 0.001, agent_id); // nominal tracking
           return {
             content: [{ type: "text", text: `[${targetModel} | ${fullMessages.length} msgs]\n\n${reply}` }],
             structuredContent: { model_used: targetModel, response: reply, message_count: fullMessages.length },
@@ -111,6 +126,7 @@ Run blockrun_models for live pricing.`,
             maxTokens: max_tokens,
             temperature,
           });
+          recordSpending(budget, 0.001, agent_id); // nominal tracking
           return { content: [{ type: "text", text: response }] };
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : String(error);
@@ -132,6 +148,7 @@ Run blockrun_models for live pricing.`,
             system,
             maxTokens: max_tokens,
           });
+          recordSpending(budget, 0.001, agent_id); // nominal tracking
           return {
             content: [{ type: "text", text: `[${m}]\n\n${response}` }],
             structuredContent: { model_used: m, response },
