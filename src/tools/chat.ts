@@ -17,6 +17,7 @@ Three ways to use:
 1. ClawRouter (recommended): routing: "smart" — auto-selects optimal model via 14-dimension AI routing
 2. Direct model: model: "openai/gpt-5.4"
 3. Smart routing: mode: "fast"|"balanced"|"powerful"|"cheap"|"reasoning"|"free"|"coding"
+4. Multi-turn: pass messages[] array (conversation history) — "message" is appended as the final user turn
 
 All providers (format: provider/model-id):
 • OpenAI (13): gpt-5.4, gpt-5.4-pro, gpt-5.3, gpt-5.2, gpt-5.4-mini, gpt-5-mini, gpt-5.4-nano, gpt-5.2-pro, gpt-5.3-codex, o1, o1-mini, o3, o3-mini
@@ -46,9 +47,13 @@ Run blockrun_models for live pricing.`,
         system: z.string().optional().describe("Optional system prompt"),
         max_tokens: z.number().optional().default(1024).describe("Max tokens in response"),
         temperature: z.number().optional().default(1).describe("Creativity 0-2"),
+        messages: z.array(z.object({
+          role: z.enum(["user", "assistant", "system"]),
+          content: z.string(),
+        })).optional().describe("Conversation history for multi-turn context. When provided, 'message' is appended as the final user turn. Use with explicit 'model' param (defaults to 'openai/gpt-5.4' if not specified)."),
       },
     },
-    async ({ message, model, mode, routing, routing_profile, system, max_tokens, temperature }) => {
+    async ({ message, model, mode, routing, routing_profile, system, max_tokens, temperature, messages }) => {
       const llm = getClient();
 
       // ClawRouter smart routing
@@ -67,6 +72,30 @@ Run blockrun_models for live pricing.`,
               response: result.response,
               routing: result.routing,
             },
+          };
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : String(error);
+          return { content: [{ type: "text", text: formatError(errorMessage) }], isError: true };
+        }
+      }
+
+      // Multi-turn conversation
+      if (messages && messages.length > 0) {
+        const targetModel = model || MODEL_TIERS[(mode as RoutingMode) || "balanced"]?.[0] || "openai/gpt-5.4";
+        const fullMessages = [
+          ...(system ? [{ role: "system" as const, content: system }] : []),
+          ...messages,
+          { role: "user" as const, content: message },
+        ];
+        try {
+          const result = await llm.chatCompletion(targetModel, fullMessages, {
+            maxTokens: max_tokens,
+            temperature,
+          });
+          const reply = result.choices?.[0]?.message?.content || "";
+          return {
+            content: [{ type: "text", text: `[${targetModel} | ${fullMessages.length} turns]\n\n${reply}` }],
+            structuredContent: { model_used: targetModel, response: reply, turns: fullMessages.length },
           };
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : String(error);
