@@ -9,11 +9,6 @@ import { registerChatTool } from "./tools/chat.js";
 import { registerModelsTool } from "./tools/models.js";
 import { registerImageTool } from "./tools/image.js";
 import { registerTwitterTool } from "./tools/twitter.js";
-import { registerDexTool } from "./tools/dex.js";
-import { registerWhaleTool } from "./tools/whale.js";
-import { registerAnalyzeTool } from "./tools/analyze.js";
-import { registerSignalTool } from "./tools/signal.js";
-import { registerSwapTool } from "./tools/swap.js";
 import { registerSearchTool } from "./tools/search.js";
 import { registerExaTool } from "./tools/exa.js";
 import { registerMarketsTool } from "./tools/markets.js";
@@ -28,16 +23,11 @@ export function initializeMcpServer(server: McpServer): void {
   registerModelsTool(server, modelCache);
   registerImageTool(server);
   registerTwitterTool(server, budget);
-  registerDexTool(server);
-  registerWhaleTool(server);
-  registerAnalyzeTool(server);
-  registerSignalTool(server);
-  registerSwapTool(server);
   registerSearchTool(server);
   registerExaTool(server);
   registerMarketsTool(server);
 
-  // Register resources (copied from original index.ts)
+  // Register resources
   server.registerResource(
     "wallet",
     "blockrun://wallet",
