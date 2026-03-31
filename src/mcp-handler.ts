@@ -20,7 +20,7 @@ import { registerXTool } from "./tools/x.js";
 import { registerMarketsTool } from "./tools/markets.js";
 
 export function initializeMcpServer(server: McpServer): void {
-  const budget: BudgetState = { limit: null, spent: 0, calls: 0 };
+  const budget: BudgetState = { limit: null, spent: 0, calls: 0, agents: new Map() };
   const modelCache: { models: Model[] | null } = { models: null };
 
   // Register all tools
