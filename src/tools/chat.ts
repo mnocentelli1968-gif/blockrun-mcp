@@ -9,30 +9,35 @@ export function registerChatTool(server: McpServer): void {
   server.registerTool(
     "blockrun_chat",
     {
-      description: `Chat with AI models via BlockRun. Supports 30+ models with pay-per-request micropayments.
+      description: `Chat with 41 AI models from 7 providers via BlockRun micropayments. No API keys needed.
 
 Two ways to use:
-1. Specify a model directly: model: "openai/gpt-5.4"
-2. Use smart routing: mode: "fast" | "balanced" | "powerful" | "cheap" | "reasoning"
+1. Direct model: model: "openai/gpt-5.4"
+2. Smart routing: mode: "fast"|"balanced"|"powerful"|"cheap"|"reasoning"|"free"|"coding"
 
-Popular models:
-- openai/gpt-5.4, openai/gpt-5.4-mini, openai/gpt-5.4-nano
-- anthropic/claude-opus-4.6, anthropic/claude-sonnet-4.6
-- google/gemini-2.5-pro, google/gemini-2.5-flash
-- deepseek/deepseek-chat (very affordable)
+All providers (format: provider/model-id):
+• OpenAI (13): gpt-5.4, gpt-5.4-pro, gpt-5.3, gpt-5.2, gpt-5.4-mini, gpt-5-mini, gpt-5.4-nano, gpt-5.2-pro, gpt-5.3-codex, o1, o1-mini, o3, o3-mini
+• Anthropic (4): claude-haiku-4.5, claude-sonnet-4.6, claude-opus-4.5, claude-opus-4.6
+• Google (7): gemini-3.1-pro, gemini-3-pro-preview, gemini-3-flash-preview, gemini-2.5-pro, gemini-2.5-flash, gemini-3.1-flash-lite, gemini-2.5-flash-lite
+• DeepSeek (2): deepseek-chat, deepseek-reasoner
+• NVIDIA (12, most FREE*): gpt-oss-120b*, gpt-oss-20b*, kimi-k2.5, nemotron-ultra-253b*, nemotron-3-super-120b*, nemotron-super-49b*, deepseek-v3.2*, mistral-large-3-675b*, qwen3-coder-480b*, devstral-2-123b*, glm-4.7*, llama-4-maverick*
+• ZAI (2): glm-5, glm-5-turbo
+• MiniMax (1): minimax-m2.7
 
 Smart routing modes:
-- fast: Gemini Flash, GPT-5 Mini (quickest)
-- balanced: GPT-5.4, Claude Sonnet 4.6 (good default)
-- powerful: GPT-5.4, Claude Opus 4.6 (best quality)
-- cheap: DeepSeek, Gemini Flash (lowest cost)
-- reasoning: o3, o1 (complex logic)
+- fast: Gemini Flash, GPT-5 Mini (lowest latency)
+- balanced: GPT-5.4, Claude Sonnet 4.6, Gemini Pro (best default)
+- powerful: GPT-5.4-Pro, Claude Opus 4.6 (highest quality)
+- cheap: NVIDIA free + DeepSeek (lowest cost)
+- reasoning: o3, o1, DeepSeek Reasoner (complex logic)
+- free: All free NVIDIA models (zero cost)
+- coding: GPT-5.3-Codex, Qwen3-Coder, Devstral (code tasks)
 
-Use blockrun_models to see all available models with pricing.`,
+Run blockrun_models for live pricing.`,
       inputSchema: {
         message: z.string().describe("Your message to the AI"),
         model: z.string().optional().describe("Specific model ID (e.g., 'openai/gpt-4o')"),
-        mode: z.enum(["fast", "balanced", "powerful", "cheap", "reasoning"]).optional().describe("Smart routing mode (ignored if model specified)"),
+        mode: z.enum(["fast", "balanced", "powerful", "cheap", "reasoning", "free", "coding"]).optional().describe("Smart routing mode (ignored if model specified)"),
         system: z.string().optional().describe("Optional system prompt"),
         max_tokens: z.number().optional().default(1024).describe("Max tokens in response"),
         temperature: z.number().optional().default(1).describe("Creativity 0-2"),

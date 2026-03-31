@@ -14,6 +14,10 @@ import { registerWhaleTool } from "./tools/whale.js";
 import { registerAnalyzeTool } from "./tools/analyze.js";
 import { registerSignalTool } from "./tools/signal.js";
 import { registerSwapTool } from "./tools/swap.js";
+import { registerSearchTool } from "./tools/search.js";
+import { registerExaTool } from "./tools/exa.js";
+import { registerXTool } from "./tools/x.js";
+import { registerMarketsTool } from "./tools/markets.js";
 
 export function initializeMcpServer(server: McpServer): void {
   const budget: BudgetState = { limit: null, spent: 0, calls: 0 };
@@ -30,6 +34,10 @@ export function initializeMcpServer(server: McpServer): void {
   registerAnalyzeTool(server);
   registerSignalTool(server);
   registerSwapTool(server);
+  registerSearchTool(server);
+  registerExaTool(server);
+  registerXTool(server);
+  registerMarketsTool(server);
 
   // Register resources (copied from original index.ts)
   server.registerResource(
