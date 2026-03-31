@@ -10,25 +10,32 @@ export function registerWalletTool(server: McpServer, budget: BudgetState): void
   server.registerTool(
     "blockrun_wallet",
     {
-      description: `Manage your BlockRun wallet - check status, get funding instructions, open QR code, manage session budget, or orchestrate multi-agent sub-budgets.
+      description: `Call this tool to manage the BlockRun payment wallet and control agent spending budgets.
+
+Call this FIRST if any other blockrun_* tool returns a payment/balance error.
+Call this to check your current USDC balance before expensive operations.
+Call this to set spending limits before spawning child agents.
 
 Actions:
-- status: Show wallet address, balance, and basescan link (default)
-- setup: Full funding instructions with QR code
-- qr: Generate and open QR code for easy funding
-- budget: Manage session spending limit
-- delegate: Allocate a sub-budget to a named child agent (requires agent_id, agent_limit)
-- revoke: Remove a child agent's budget allocation (requires agent_id)
-- report: Show global and per-agent spending breakdown
+- status (default): Current wallet address, USDC balance, total session spending
+- setup: Get funding instructions + QR code (call this when balance is 0)
+- qr: Open QR code in system viewer
 
-Examples:
-  blockrun_wallet()                                    -> status + balance
-  blockrun_wallet({ action: "setup" })                 -> funding instructions + QR
-  blockrun_wallet({ action: "qr" })                    -> open QR code
-  blockrun_wallet({ action: "budget", budget_action: "set", budget_amount: 1.00 })
-  blockrun_wallet({ action: "delegate", agent_id: "researcher", agent_limit: 0.50 })
-  blockrun_wallet({ action: "revoke", agent_id: "researcher" })
-  blockrun_wallet({ action: "report" })`,
+Budget controls:
+- budget + budget_action:"set" + budget_amount:1.00 → Set global spend cap
+- budget + budget_action:"clear" → Remove global spend cap
+
+Multi-agent orchestration:
+- delegate + agent_id:"research" + agent_limit:2.00 → Allocate $2 to a child agent
+- revoke + agent_id:"research" → Remove a child agent's budget
+- report → See per-agent spending breakdown
+
+Usage pattern for multi-agent systems:
+  1. blockrun_wallet action:"delegate" agent_id:"worker-1" agent_limit:1.00
+  2. Pass agent_id:"worker-1" to all blockrun_chat/search/etc calls for that agent
+  3. blockrun_wallet action:"report" to audit spending
+
+Do NOT call this for actual AI queries — use blockrun_chat for that.`,
       inputSchema: {
         action: z.enum(["status", "setup", "qr", "budget", "delegate", "revoke", "report"]).optional().default("status").describe("What to do"),
         budget_action: z.enum(["set", "check", "clear"]).optional().describe("Budget action (for action='budget')"),
