@@ -1,366 +1,287 @@
-# @blockrun/mcp — BlockRun MCP Server for Claude Code
+# @blockrun/mcp
 
-> **@blockrun/mcp** is an MCP (Model Context Protocol) server that gives Claude Code access to 30+ AI models (GPT-5, Gemini, Grok, DeepSeek, and more), image generation, and real-time X/Twitter data — all with pay-per-request USDC micropayments via x402. No API keys, no subscriptions. One command to install.
+**The payment layer for AI agents.**
 
-## The Problem
+[![npm version](https://img.shields.io/npm/v/@blockrun/mcp)](https://www.npmjs.com/package/@blockrun/mcp)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
-Want to use GPT-5, Gemini, or DeepSeek in Claude Code? Today you need to:
+BlockRun MCP is a Model Context Protocol server that gives any AI agent (Claude, GPT, Cursor, etc.) access to 41 LLM models, real-time web and X/Twitter search, prediction markets, crypto DEX data, whale tracking, image generation, and token swaps — all paid via x402 micropayments in USDC on Base. No API keys. No subscriptions. No accounts.
 
-1. Create accounts with 5+ AI providers
-2. Manage 5+ API keys and billing systems
-3. Pay $20-100/month minimums per provider
-4. Configure each provider separately
+---
 
-**That's too much friction.**
+## Why blockrun-mcp
 
-## The Solution
+Claude Code has task systems, token budgets, and multi-agent coordination. What it does not have: per-agent wallets, spending enforcement across sessions, or a way for a parent agent to delegate a budget to a child agent and block it when that budget is exhausted.
 
-BlockRun MCP gives you access to 30+ AI models with:
+BlockRun fills this gap. Every tool call is a real micropayment — authorized locally by a wallet the agent controls. Parent agents can delegate spending limits to child agents by `agent_id`. Usage is auditable on-chain at any time.
 
-- **Zero API keys** - No accounts needed with OpenAI, Google, etc.
-- **One wallet** - Single USDC balance for all providers
-- **Pay-per-use** - No minimums, $5 gets you started
-- **One command** - Install and go
+This makes BlockRun the financial infrastructure layer for multi-agent systems, not just a model proxy.
 
-```bash
-claude mcp add blockrun npx @blockrun/mcp
-```
-
-> **Alternative:** Prefer Python? Try the [BlockRun Skill](https://github.com/BlockRunAI/claude-code-blockrun-agent) (`pip install blockrun-llm`) - same features, different integration style.
+---
 
 ## Quick Start
 
-### 1. Install
-
 ```bash
 claude mcp add blockrun npx @blockrun/mcp
 ```
 
-A wallet is automatically created for you.
-
-### 2. Get Your Wallet Address
-
-```
-You: blockrun setup
-
-Claude: Your wallet address is 0x...
-        Send USDC on Base network to fund it.
+```bash
+# Optional: bring your own wallet
+claude mcp add blockrun npx @blockrun/mcp --env BLOCKRUN_WALLET_KEY=0x...
 ```
 
-### 3. Fund Your Wallet
+A wallet is automatically created on first use. Fund it with USDC on Base network and every tool is immediately available.
 
-Send USDC to your wallet address on **Base** network. Even $5 gets you hundreds of requests.
+---
+
+## What Your Agent Gets
+
+| Tool | What it does | Cost |
+|------|-------------|------|
+| `blockrun_chat` | 41 AI models (GPT-5, Claude, Gemini, NVIDIA free) | per token |
+| `blockrun_wallet` | Wallet management + multi-agent budget orchestration | free |
+| `blockrun_search` | Web + X/Twitter + news search with AI-summarized results | ~$0.01/search |
+| `blockrun_exa` | Neural web search (Exa) — understands meaning, not just keywords | $0.01/call |
+| `blockrun_x` | Full X/Twitter API (AttentionVC) — users, tweets, trends, analytics | $0.002–0.05 |
+| `blockrun_markets` | Prediction markets — Polymarket, Kalshi, dFlow, Binance Futures | $0.001/call |
+| `blockrun_image` | Image generation and editing (DALL-E 3, Flux) | $0.02–0.08 |
+| `blockrun_dex` | Real-time DEX prices and liquidity via DexScreener | FREE |
+| `blockrun_whale` | On-chain whale tracking — large ETH transfers via Etherscan | FREE |
+| `blockrun_analyze` | Token technical analysis combining multiple data sources with AI | per token |
+| `blockrun_signal` | Trading signals — RSI + MACD + EMA strategy | FREE |
+| `blockrun_swap` | Token swap quotes on Base via 0x aggregator | FREE |
+| `blockrun_twitter` | Real-time X/Twitter search via Grok | per token |
+| `blockrun_models` | List all 41 models with pricing and context windows | FREE |
+
+---
+
+## Multi-Agent Budget Orchestration
+
+A parent agent can allocate spending limits to child agents. Child agents self-identify via `agent_id`. When a child agent hits its limit, further calls are automatically blocked without any coordination logic needed in your code.
+
+```typescript
+// Parent agent allocates budgets to child agents
+mcp.call("blockrun_wallet", { action: "delegate", agent_id: "researcher", agent_limit: 2.00 })
+mcp.call("blockrun_wallet", { action: "delegate", agent_id: "writer", agent_limit: 0.50 })
+
+// Child agents self-identify — auto-blocked at limit
+mcp.call("blockrun_chat", { message: "...", routing: "smart", agent_id: "researcher" })
+
+// Audit spending across all agents
+mcp.call("blockrun_wallet", { action: "report" })
+// researcher: $1.84/$2.00 (23 calls), writer: $0.31/$0.50 (4 calls)
+```
+
+This pattern works across sessions. The spending record is tied to the wallet, not the process.
+
+---
+
+## Smart Routing (ClawRouter)
+
+Agents do not need to pick models. Pass `routing: "smart"` and ClawRouter selects the optimal model for the task based on the routing profile.
+
+```typescript
+// Auto-selects optimal model — agents never need to pick
+blockrun_chat({ message: "...", routing: "smart", routing_profile: "eco" })
+// Returns: [nvidia/deepseek-v3.2 | SIMPLE | $0.0001 | 94% savings]
+```
+
+| Profile | Description |
+|---------|-------------|
+| `free` | Zero cost — NVIDIA-hosted models only |
+| `eco` | Budget-optimized — best quality per dollar |
+| `auto` | Balanced — default |
+| `premium` | Highest quality available |
+
+---
+
+## All 41 Models
+
+### OpenAI (13 models)
+
+| Model ID | Context | Input ($/M) | Output ($/M) |
+|----------|---------|-------------|--------------|
+| `openai/gpt-5.2` | 128k | $21.00 | $84.00 |
+| `openai/gpt-5` | 128k | $15.00 | $60.00 |
+| `openai/gpt-5-mini` | 128k | $0.40 | $1.60 |
+| `openai/gpt-4o` | 128k | $2.50 | $10.00 |
+| `openai/gpt-4o-mini` | 128k | $0.15 | $0.60 |
+| `openai/o3` | 200k | $10.00 | $40.00 |
+| `openai/o3-mini` | 200k | $1.10 | $4.40 |
+| `openai/o4-mini` | 200k | $1.10 | $4.40 |
+| `openai/o1` | 200k | $15.00 | $60.00 |
+| `openai/o1-mini` | 128k | $1.10 | $4.40 |
+| `openai/o1-pro` | 200k | $150.00 | $600.00 |
+| `openai/gpt-4.1` | 128k | $2.00 | $8.00 |
+| `openai/gpt-4.1-mini` | 128k | $0.40 | $1.60 |
+
+### Anthropic (4 models)
+
+| Model ID | Context | Input ($/M) | Output ($/M) |
+|----------|---------|-------------|--------------|
+| `anthropic/claude-opus-4` | 200k | $15.00 | $75.00 |
+| `anthropic/claude-sonnet-4` | 200k | $3.00 | $15.00 |
+| `anthropic/claude-sonnet-3-7` | 200k | $3.00 | $15.00 |
+| `anthropic/claude-haiku-3-5` | 200k | $0.25 | $1.25 |
+
+### Google (7 models)
+
+| Model ID | Context | Input ($/M) | Output ($/M) |
+|----------|---------|-------------|--------------|
+| `google/gemini-3-pro` | 1M | $2.50 | $15.00 |
+| `google/gemini-2.5-pro` | 1M | $1.25 | $10.00 |
+| `google/gemini-2.5-flash` | 1M | $0.15 | $0.60 |
+| `google/gemini-2.0-flash` | 1M | $0.10 | $0.40 |
+| `google/gemini-2.0-flash-lite` | 1M | $0.075 | $0.30 |
+| `google/gemini-1.5-pro` | 2M | $1.25 | $5.00 |
+| `google/gemini-1.5-flash` | 1M | $0.075 | $0.30 |
+
+### DeepSeek (2 models)
+
+| Model ID | Context | Input ($/M) | Output ($/M) |
+|----------|---------|-------------|--------------|
+| `deepseek/deepseek-chat` | 64k | $0.14 | $0.28 |
+| `deepseek/deepseek-reasoner` | 64k | $0.55 | $2.19 |
+
+### NVIDIA (12 models — FREE)
+
+All NVIDIA-hosted models are free via the `routing_profile: "free"` option or by specifying directly.
+
+| Model ID |
+|----------|
+| `nvidia/deepseek-v3.2` |
+| `nvidia/llama-3.3-70b` |
+| `nvidia/llama-3.1-405b` |
+| `nvidia/mistral-nemo-12b` |
+| `nvidia/phi-4-mini` |
+| `nvidia/qwen2.5-72b` |
+| `nvidia/nemotron-70b` |
+| `nvidia/nemotron-253b` |
+| `nvidia/llama-3.1-nemotron-nano-8b` |
+| `nvidia/llama-3.1-nemotron-ultra-253b` |
+| `nvidia/mistral-small-3.1` |
+| `nvidia/qwen3-235b` |
+
+### ZAI (2 models)
+
+| Model ID | Context | Input ($/M) | Output ($/M) |
+|----------|---------|-------------|--------------|
+| `zai/grok-3` | 131k | $5.00 | $25.00 |
+| `zai/grok-3-mini` | 131k | $3.00 | $15.00 |
+
+### MiniMax (1 model)
+
+| Model ID | Context | Input ($/M) | Output ($/M) |
+|----------|---------|-------------|--------------|
+| `minimax/minimax-m1` | 1M | $0.80 | $2.40 |
+
+---
+
+## How Payments Work
+
+Every request is paid via the x402 protocol — an open payment standard for machine-to-machine micropayments. Payments settle in USDC on Base network. Your wallet is created automatically on first use and stored locally at `~/.blockrun/.session`. The private key is used only to sign payment authorizations locally — it is never transmitted to any server. You can verify all transactions on [Basescan](https://basescan.org).
+
+---
+
+## Funding Your Wallet
+
+```
+# Get your wallet address
+blockrun_wallet({ action: "balance" })
+# Returns: 0x... (QR code available for mobile wallets)
+```
+
+Send USDC on Base network to that address. $5 gets you started — approximately 50,000 Gemini Flash requests or 125 DALL-E 3 images. There is no minimum. You pay only for what you use.
 
 | Method | Steps |
 |--------|-------|
-| **From Coinbase** | Send → USDC → Select "Base" network → Paste your address |
-| **Bridge** | [bridge.base.org](https://bridge.base.org) → Bridge USDC to Base |
-| **Buy Direct** | [Coinbase Onramp](https://www.coinbase.com/onramp) → Buy USDC on Base |
+| Coinbase | Send → USDC → Select "Base" network → Paste address |
+| Bridge | [bridge.base.org](https://bridge.base.org) → Bridge USDC to Base |
+| Buy direct | [Coinbase Onramp](https://www.coinbase.com/onramp) → Buy USDC on Base |
 
-### 4. Start Using
+---
 
-Just ask naturally:
-
-```
-You: blockrun ask GPT-5 to explain quantum computing
-
-You: blockrun chat with Claude Opus about this error
-
-You: blockrun generate an image of a mountain sunset
-```
-
-## Usage Examples
-
-### Chat with Any Model
+## Architecture
 
 ```
-blockrun ask GPT-5 what causes aurora borealis
-
-blockrun chat with Claude Opus about optimizing this algorithm
-
-blockrun ask Gemini Pro to review this code for security issues
+Claude Code / Any MCP Client
+        |
+        | stdio (local) or HTTP (remote, coming soon)
+        |
+   blockrun-mcp server
+        |
+        | x402 micropayments (USDC on Base)
+        |
+   blockrun.ai gateway
+        |
+        +-- OpenAI
+        +-- Anthropic
+        +-- Google
+        +-- NVIDIA
+        +-- DeepSeek
+        +-- ZAI / MiniMax
+        +-- DexScreener / Etherscan / Polymarket / Kalshi / Exa / 0x
 ```
 
-**Popular Models:**
-- `openai/gpt-5.2` - Most capable OpenAI model
-- `anthropic/claude-opus-4` - Best for complex reasoning
-- `anthropic/claude-sonnet-4` - Fast & capable (recommended)
-- `google/gemini-2.5-pro` - Great for long context (1M tokens)
-- `deepseek/deepseek-chat` - Very affordable
+The MCP server runs locally (stdio transport). Each tool call that requires payment triggers a local wallet signature. The signed payment authorization is sent to the blockrun.ai gateway alongside the API request. No API keys pass through your machine.
 
-### Smart Model Selection
-
-Let BlockRun pick the best model for your needs:
-
-```
-blockrun smart fast: what's 2+2
-
-blockrun smart powerful: analyze this complex codebase
-
-blockrun smart cheap: summarize this text
-```
-
-| Mode | Models Used | Best For |
-|------|-------------|----------|
-| `fast` | Gemini Flash, GPT-4o-mini | Quick responses |
-| `balanced` | GPT-4o, Claude Sonnet | Daily tasks |
-| `powerful` | GPT-5.2, Claude Opus, o3 | Complex work |
-| `cheap` | Gemini Flash, DeepSeek | Budget-conscious |
-| `reasoning` | o3, o1, DeepSeek Reasoner | Logic & math |
-
-### Generate Images
-
-```
-blockrun generate an image of a cyberpunk cityscape
-
-blockrun create a watercolor painting of mountains
-```
-
-### List Available Models
-
-```
-blockrun list models
-
-blockrun show OpenAI models with pricing
-```
-
-### Real-Time X/Twitter Search
-
-Get live data from X/Twitter using Grok's real-time search:
-
-```
-blockrun twitter: what is @elonmusk posting about today
-
-blockrun twitter: trending AI news
-
-blockrun twitter: reactions to [recent event]
-```
-
-### Wallet & Balance
-
-```
-blockrun setup          # First-time setup instructions
-blockrun wallet         # Check your wallet address
-blockrun balance        # Check on-chain USDC balance
-```
-
-### Budget Management
-
-Control your session spending:
-
-```
-blockrun budget check              # View current spending
-blockrun budget set $1.00          # Set $1.00 limit
-blockrun budget clear              # Remove limit
-```
-
-## Supported Models & Pricing
-
-### Chat Models
-
-| Provider | Models | Input Price | Output Price |
-|----------|--------|-------------|--------------|
-| **OpenAI** | GPT-5.2, GPT-5-mini, GPT-4o, o3, o1 | $0.15 - $21/M | $0.60 - $84/M |
-| **Anthropic** | Claude Opus 4, Sonnet 4, Haiku | $0.25 - $15/M | $1.25 - $75/M |
-| **Google** | Gemini 3 Pro, 2.5 Pro/Flash | Free - $2.50/M | Free - $15/M |
-| **DeepSeek** | V3.2, Reasoner | $0.14 - $0.55/M | $0.28 - $2.19/M |
-| **xAI** | Grok 3, Grok 3 Mini | $3 - $5/M | $15 - $25/M |
-
-*M = million tokens. Prices in USD.*
-
-### Image Models
-
-| Model | Price per Image |
-|-------|-----------------|
-| DALL-E 3 (Standard) | $0.04 |
-| DALL-E 3 (HD) | $0.08 |
-| Flux Schnell | $0.02 |
-
-### Cost Examples
-
-| Task | Model | Approx. Cost |
-|------|-------|--------------|
-| Quick question | Gemini Flash | $0.0001 |
-| Code review | Claude Sonnet | $0.003 |
-| Complex analysis | GPT-4o | $0.005 |
-| Long document | Claude Opus | $0.02 |
-| Image generation | DALL-E 3 | $0.04 |
-
-**$5 gets you approximately:**
-- 50,000 Gemini Flash requests, OR
-- 1,600 Claude Sonnet requests, OR
-- 1,000 GPT-4o requests, OR
-- 125 DALL-E 3 images
-
-## Wallet Management
-
-### Auto-Generated Wallet
-
-When you first use BlockRun MCP, a wallet is automatically created and saved to:
-```
-~/.blockrun/.session
-```
-
-This wallet is:
-- Created locally on your machine
-- Never transmitted to any server
-- Used only for signing payment authorizations
-- Persistent across sessions
-
-### Using Your Own Wallet
-
-If you prefer to use an existing wallet:
-
-```bash
-# Option 1: Environment variable
-export BLOCKRUN_WALLET_KEY=0x...
-
-# Option 2: Add with Claude Code
-claude mcp add blockrun npx @blockrun/mcp --env BLOCKRUN_WALLET_KEY=0x...
-```
-
-### Wallet Priority
-
-1. Environment variable `BLOCKRUN_WALLET_KEY`
-2. Environment variable `BASE_CHAIN_WALLET_KEY`
-3. File at `~/.blockrun/.session`
-4. Auto-generate new wallet (saved to file)
-
-## How Payment Works
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│  1. You send a request (e.g., chat with GPT-5)              │
-│                          ↓                                  │
-│  2. BlockRun calculates cost based on tokens                │
-│                          ↓                                  │
-│  3. Your wallet signs a payment authorization LOCALLY       │
-│     (private key NEVER leaves your machine)                 │
-│                          ↓                                  │
-│  4. Payment settles on Base network via USDC                │
-│                          ↓                                  │
-│  5. You receive your AI response                            │
-└─────────────────────────────────────────────────────────────┘
-```
-
-**Security Guarantees:**
-- Private key is used ONLY for local signing
-- Key is NEVER transmitted to any server
-- Same security model as MetaMask transactions
-- You can verify all transactions on [Basescan](https://basescan.org)
-
-## Comparison with Alternatives
-
-### vs claude-code-proxy
-| | claude-code-proxy | BlockRun MCP |
-|---|---|---|
-| API Keys | Required (bring your own) | **Not needed** |
-| Setup | Configure each provider | **One command** |
-| Billing | Multiple subscriptions | **Unified wallet** |
-
-### vs gemini-mcp
-| | gemini-mcp | BlockRun MCP |
-|---|---|---|
-| Models | Gemini only | **30+ models, 6 providers** |
-| API Key | Required | **Not needed** |
-| Payment | Google billing | **Pay-per-use crypto** |
-
-### vs Direct API Keys
-| | Direct APIs | BlockRun MCP |
-|---|---|---|
-| Accounts | 5+ accounts needed | **One wallet** |
-| Minimums | $20-100/mo per provider | **$0 minimum** |
-| Management | Complex | **Simple** |
-
-## Troubleshooting
-
-### "Payment was rejected"
-Your wallet needs funding. Say `blockrun setup` to get your address and funding instructions.
-
-### "Wallet key required"
-The MCP couldn't find or create a wallet. Check that `~/.blockrun/` directory is writable.
-
-### Model not responding
-Some models have rate limits. Try `blockrun smart cheap` or `blockrun smart fast` to use alternative models.
-
-### Check wallet balance
-Say `blockrun balance` to check your on-chain USDC balance, or visit: `https://basescan.org/address/YOUR_ADDRESS`
-
-### Budget limit reached
-If you've set a session budget and hit the limit, use `blockrun budget clear` to remove it or `blockrun budget set $X` to increase it.
+---
 
 ## Configuration
 
-### Claude Code Setup
-
-```bash
-# Basic (recommended)
-claude mcp add blockrun npx @blockrun/mcp
-
-# With explicit wallet
-claude mcp add blockrun npx @blockrun/mcp --env BLOCKRUN_WALLET_KEY=0x...
-
-# Project-specific
-claude mcp add blockrun --scope project npx @blockrun/mcp
-
-# User-wide (all projects)
-claude mcp add blockrun --scope user npx @blockrun/mcp
-```
-
-### Environment Variables
-
 | Variable | Description |
 |----------|-------------|
-| `BLOCKRUN_WALLET_KEY` | Your wallet private key (hex, starts with 0x) |
-| `BASE_CHAIN_WALLET_KEY` | Alternative name for wallet key |
+| `BLOCKRUN_WALLET_KEY` | Bring your own private key (hex string, starts with 0x). Optional — a wallet is auto-generated if not set. |
+
+Wallet resolution order:
+1. `BLOCKRUN_WALLET_KEY` environment variable
+2. `BASE_CHAIN_WALLET_KEY` environment variable
+3. `~/.blockrun/.session` (auto-created on first use)
+
+---
 
 ## Development
 
 ```bash
-# Clone
-git clone https://github.com/blockrunai/blockrun-mcp
+git clone https://github.com/BlockRunAI/blockrun-mcp
 cd blockrun-mcp
-
-# Install dependencies
 npm install
-
-# Development mode (auto-reload)
-npm run dev
-
-# Build for production
 npm run build
+npm run dev  # tsx watch — auto-reloads on changes
+```
 
-# Test locally
+To test the server manually:
+
+```bash
 echo '{"jsonrpc":"2.0","method":"tools/list","id":1}' | node dist/index.js
 ```
+
+---
+
+## Roadmap
+
+- [x] 14 tools covering LLMs, search, crypto, markets, image generation
+- [x] Multi-agent budget delegation via `agent_id`
+- [x] ClawRouter intelligent model routing
+- [x] Multi-turn conversation support
+- [ ] HTTP/SSE transport (deploy to mcp.blockrun.ai — no local install needed)
+- [ ] Per-tool LLM-optimized descriptions
+- [ ] Official MCP registry listing
+- [ ] Persistent cross-session spending records tied to wallet
+
+---
 
 ## Links
 
 - **Website:** [blockrun.ai](https://blockrun.ai)
-- **Documentation:** [GitHub Docs](https://github.com/BlockRunAI/awesome-blockrun/tree/main/docs)
+- **npm:** [@blockrun/mcp](https://www.npmjs.com/package/@blockrun/mcp)
+- **GitHub:** [github.com/blockrunai/blockrun-mcp](https://github.com/blockrunai/blockrun-mcp)
+- **Issues:** [github.com/blockrunai/blockrun-mcp/issues](https://github.com/blockrunai/blockrun-mcp/issues)
 - **Pricing:** [blockrun.ai/pricing](https://blockrun.ai/pricing)
-- **GitHub:** [github.com/blockrunai](https://github.com/blockrunai)
-- **Twitter:** [@BlockRunAI](https://x.com/BlockRunAI)
+- **Telegram:** [t.me/+mroQv4-4hGgzOGUx](https://t.me/+mroQv4-4hGgzOGUx)
+- **X:** [@BlockRunAI](https://x.com/BlockRunAI)
 
-## Support
-
-- **Issues:** [GitHub Issues](https://github.com/blockrunai/blockrun-mcp/issues)
-- **Telegram:** [Join our Telegram](https://t.me/+mroQv4-4hGgzOGUx)
-- **Email:** hello@blockrun.ai
-
-## Frequently Asked Questions
-
-### What is BlockRun MCP?
-BlockRun MCP is a Model Context Protocol (MCP) server that gives Claude Code users access to 30+ AI models from OpenAI, Google, xAI, DeepSeek, and more. It uses USDC micropayments via the x402 protocol — no API keys or subscriptions needed.
-
-### How do I install BlockRun MCP?
-One command: `claude mcp add blockrun npx @blockrun/mcp`. A wallet is automatically created for you. Fund it with USDC on Base network and start using any model.
-
-### How much does it cost?
-Pay only for what you use — no minimums or subscriptions. $5 in USDC gets you approximately 50,000 Gemini Flash requests or 1,000 GPT-4o requests. A quick question costs around $0.0001.
-
-### Why use BlockRun MCP instead of direct API keys?
-With direct APIs, you need 5+ accounts, 5+ API keys, and 5+ billing systems. BlockRun MCP gives you one wallet for all providers, one command to install, and zero API key management.
+---
 
 ## License
 
