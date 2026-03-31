@@ -50,7 +50,7 @@ Run blockrun_models for live pricing.`,
         messages: z.array(z.object({
           role: z.enum(["user", "assistant", "system"]),
           content: z.string(),
-        })).optional().describe("Conversation history for multi-turn context. When provided, 'message' is appended as the final user turn. Use with explicit 'model' param (defaults to 'openai/gpt-5.4' if not specified)."),
+        })).optional().describe("Conversation history for multi-turn context. When provided, 'message' is appended as the final user turn. Use with explicit 'model' param (defaults to 'openai/gpt-5.4' if not specified). Note: if you include a role:'system' entry in messages[], do not also pass the system param to avoid duplicate system messages."),
       },
     },
     async ({ message, model, mode, routing, routing_profile, system, max_tokens, temperature, messages }) => {
@@ -81,7 +81,7 @@ Run blockrun_models for live pricing.`,
 
       // Multi-turn conversation
       if (messages && messages.length > 0) {
-        const targetModel = model || MODEL_TIERS[(mode as RoutingMode) || "balanced"]?.[0] || "openai/gpt-5.4";
+        const targetModel = model || MODEL_TIERS[(mode ?? "balanced") as RoutingMode]?.[0] || "openai/gpt-5.4";
         const fullMessages = [
           ...(system ? [{ role: "system" as const, content: system }] : []),
           ...messages,
@@ -94,8 +94,8 @@ Run blockrun_models for live pricing.`,
           });
           const reply = result.choices?.[0]?.message?.content || "";
           return {
-            content: [{ type: "text", text: `[${targetModel} | ${fullMessages.length} turns]\n\n${reply}` }],
-            structuredContent: { model_used: targetModel, response: reply, turns: fullMessages.length },
+            content: [{ type: "text", text: `[${targetModel} | ${fullMessages.length} msgs]\n\n${reply}` }],
+            structuredContent: { model_used: targetModel, response: reply, message_count: fullMessages.length },
           };
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : String(error);
