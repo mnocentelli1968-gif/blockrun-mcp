@@ -21,6 +21,16 @@ This makes BlockRun the financial infrastructure layer for multi-agent systems, 
 
 ## Quick Start
 
+### Option 1: Hosted (zero install)
+
+```bash
+claude mcp add blockrun --transport http https://mcp.blockrun.ai
+```
+
+No Node.js. No npm. Works from any agent, CI/CD pipeline, or cloud environment. Pass your wallet key per-request via `X-Wallet-Key` header.
+
+### Option 2: Local (self-hosted, private key never leaves your machine)
+
 ```bash
 claude mcp add blockrun npx @blockrun/mcp
 ```
