@@ -16,7 +16,6 @@ import { registerSignalTool } from "./tools/signal.js";
 import { registerSwapTool } from "./tools/swap.js";
 import { registerSearchTool } from "./tools/search.js";
 import { registerExaTool } from "./tools/exa.js";
-import { registerXTool } from "./tools/x.js";
 import { registerMarketsTool } from "./tools/markets.js";
 
 export function initializeMcpServer(server: McpServer): void {
@@ -36,7 +35,6 @@ export function initializeMcpServer(server: McpServer): void {
   registerSwapTool(server);
   registerSearchTool(server);
   registerExaTool(server);
-  registerXTool(server);
   registerMarketsTool(server);
 
   // Register resources (copied from original index.ts)

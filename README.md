@@ -5,7 +5,7 @@
 [![npm version](https://img.shields.io/npm/v/@blockrun/mcp)](https://www.npmjs.com/package/@blockrun/mcp)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
-BlockRun MCP is a Model Context Protocol server that gives any AI agent (Claude, GPT, Cursor, etc.) access to 41 LLM models, real-time web and X/Twitter search, prediction markets, crypto DEX data, whale tracking, image generation, and token swaps — all paid via x402 micropayments in USDC on Base. No API keys. No subscriptions. No accounts.
+BlockRun MCP is a Model Context Protocol server that gives any AI agent (Claude, GPT, Cursor, etc.) access to 41 LLM models, real-time web search, prediction markets, crypto DEX data, whale tracking, image generation, and token swaps — all paid via x402 micropayments in USDC on Base. No API keys. No subscriptions. No accounts.
 
 ---
 
@@ -40,9 +40,9 @@ A wallet is automatically created on first use. Fund it with USDC on Base networ
 |------|-------------|------|
 | `blockrun_chat` | 41 AI models (GPT-5, Claude, Gemini, NVIDIA free) | per token |
 | `blockrun_wallet` | Wallet management + multi-agent budget orchestration | free |
-| `blockrun_search` | Web + X/Twitter + news search with AI-summarized results | ~$0.01/search |
+| `blockrun_search` | Web + news search with AI-summarized results | ~$0.01/search |
 | `blockrun_exa` | Neural web search (Exa) — understands meaning, not just keywords | $0.01/call |
-| `blockrun_x` | Full X/Twitter API (AttentionVC) — users, tweets, trends, analytics | $0.002–0.05 |
+| `blockrun_twitter` | Real-time X/Twitter search via Grok | per token |
 | `blockrun_markets` | Prediction markets — Polymarket, Kalshi, dFlow, Binance Futures | $0.001/call |
 | `blockrun_image` | Image generation and editing (DALL-E 3, Flux) | $0.02–0.08 |
 | `blockrun_dex` | Real-time DEX prices and liquidity via DexScreener | FREE |
@@ -50,7 +50,6 @@ A wallet is automatically created on first use. Fund it with USDC on Base networ
 | `blockrun_analyze` | Token technical analysis combining multiple data sources with AI | per token |
 | `blockrun_signal` | Trading signals — RSI + MACD + EMA strategy | FREE |
 | `blockrun_swap` | Token swap quotes on Base via 0x aggregator | FREE |
-| `blockrun_twitter` | Real-time X/Twitter search via Grok | per token |
 | `blockrun_models` | List all 41 models with pricing and context windows | FREE |
 
 ---
