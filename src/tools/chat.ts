@@ -10,10 +10,13 @@ export function registerChatTool(server: McpServer): void {
     "blockrun_chat",
     {
       description: `Chat with 41 AI models from 7 providers via BlockRun micropayments. No API keys needed.
+Recommended for agents: use routing: "smart" to auto-select the optimal model via ClawRouter.
+routing_profile: "free" (zero cost NVIDIA), "eco" (budget), "auto" (balanced, default), "premium" (best quality)
 
-Two ways to use:
-1. Direct model: model: "openai/gpt-5.4"
-2. Smart routing: mode: "fast"|"balanced"|"powerful"|"cheap"|"reasoning"|"free"|"coding"
+Three ways to use:
+1. ClawRouter (recommended): routing: "smart" — auto-selects optimal model via 14-dimension AI routing
+2. Direct model: model: "openai/gpt-5.4"
+3. Smart routing: mode: "fast"|"balanced"|"powerful"|"cheap"|"reasoning"|"free"|"coding"
 
 All providers (format: provider/model-id):
 • OpenAI (13): gpt-5.4, gpt-5.4-pro, gpt-5.3, gpt-5.2, gpt-5.4-mini, gpt-5-mini, gpt-5.4-nano, gpt-5.2-pro, gpt-5.3-codex, o1, o1-mini, o3, o3-mini
@@ -38,13 +41,39 @@ Run blockrun_models for live pricing.`,
         message: z.string().describe("Your message to the AI"),
         model: z.string().optional().describe("Specific model ID (e.g., 'openai/gpt-4o')"),
         mode: z.enum(["fast", "balanced", "powerful", "cheap", "reasoning", "free", "coding"]).optional().describe("Smart routing mode (ignored if model specified)"),
+        routing: z.enum(["smart"]).optional().describe('Set to "smart" to auto-select the optimal model via ClawRouter (14-dimension AI routing)'),
+        routing_profile: z.enum(["free", "eco", "auto", "premium"]).optional().default("auto").describe('Cost/quality profile for ClawRouter: "free" (zero cost NVIDIA), "eco" (budget), "auto" (balanced, default), "premium" (best quality)'),
         system: z.string().optional().describe("Optional system prompt"),
         max_tokens: z.number().optional().default(1024).describe("Max tokens in response"),
         temperature: z.number().optional().default(1).describe("Creativity 0-2"),
       },
     },
-    async ({ message, model, mode, system, max_tokens, temperature }) => {
+    async ({ message, model, mode, routing, routing_profile, system, max_tokens, temperature }) => {
       const llm = getClient();
+
+      // ClawRouter smart routing
+      if (routing === "smart") {
+        try {
+          const result = await llm.smartChat(message, {
+            system,
+            maxTokens: max_tokens,
+            temperature,
+            routingProfile: routing_profile,
+            maxOutputTokens: max_tokens,
+          });
+          return {
+            content: [{ type: "text", text: `[${result.model} | ${result.routing.tier} | $${result.routing.costEstimate.toFixed(5)} | ${Math.round((result.routing.savings ?? 0) * 100)}% savings]\n\n${result.response}` }],
+            structuredContent: {
+              model_used: result.model,
+              response: result.response,
+              routing: result.routing,
+            },
+          };
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : String(error);
+          return { content: [{ type: "text", text: formatError(errorMessage) }], isError: true };
+        }
+      }
 
       // If specific model provided, use it directly
       if (model) {
