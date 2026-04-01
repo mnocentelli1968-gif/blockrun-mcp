@@ -1,47 +1,31 @@
 #!/usr/bin/env node
 /**
- * BlockRun MCP Server v0.5.1
+ * BlockRun MCP Server
  *
- * Access 41+ AI models (GPT-5, Claude, Gemini, etc.) via x402 micropayments.
- * No API keys needed - just a wallet with USDC on Base.
+ * Give your AI agent superpowers — web search, deep research,
+ * prediction markets, crypto data, X/Twitter intelligence.
  *
- * Transports:
- *   stdio (default):  claude mcp add blockrun npx @blockrun/mcp
- *   HTTP:             npx @blockrun/mcp --http [--port 3402]
+ * Usage:
+ *   claude mcp add blockrun -- npx @blockrun/mcp
  *
- * Tools: 13 total
- *   Paid (x402): chat, image, twitter, search, exa, markets
- *   Free (on-chain): dex, whale, signal, swap, analyze
- *   Utility: wallet, models
+ * For hosted version: https://mcp.blockrun.ai
  */
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { initializeMcpServer } from "./mcp-handler.js";
 
-const args = process.argv.slice(2);
-const isHttp = args.includes("--http");
-const portIdx = args.indexOf("--port");
-const port = portIdx !== -1 ? parseInt(args[portIdx + 1], 10) : 3402;
-
 async function main() {
-  if (isHttp) {
-    // HTTP transport — for CCR cloud, claudeai-proxy, web agents
-    const { startHttpServer } = await import("./http-server.js");
-    await startHttpServer(port);
-  } else {
-    // stdio transport — default, for local Claude Code
-    const server = new McpServer({
-      name: "blockrun-mcp",
-      version: "0.5.1",
-    });
+  const server = new McpServer({
+    name: "blockrun-mcp",
+    version: "0.6.0",
+  });
 
-    initializeMcpServer(server);
+  initializeMcpServer(server);
 
-    const transport = new StdioServerTransport();
-    await server.connect(transport);
-    console.error("BlockRun MCP Server started (v0.5.1) — stdio transport");
-  }
+  const transport = new StdioServerTransport();
+  await server.connect(transport);
+  console.error("BlockRun MCP Server started (v0.6.0) — stdio transport");
 }
 
 main().catch((error) => {
