@@ -5,3 +5,4 @@ dist/
 .mcpregistry_*
 pnpm-lock.yaml
 server.json
+.gstack/
