@@ -12,6 +12,7 @@ import { registerTwitterTool } from "./tools/twitter.js";
 import { registerSearchTool } from "./tools/search.js";
 import { registerExaTool } from "./tools/exa.js";
 import { registerMarketsTool } from "./tools/markets.js";
+import { registerDexTool } from "./tools/dex.js";
 
 export function initializeMcpServer(server: McpServer): void {
   const budget: BudgetState = { limit: null, spent: 0, calls: 0, agents: new Map() };
@@ -26,6 +27,7 @@ export function initializeMcpServer(server: McpServer): void {
   registerSearchTool(server);
   registerExaTool(server);
   registerMarketsTool(server);
+  registerDexTool(server);
 
   // Register resources
   server.registerResource(
