@@ -5,7 +5,7 @@
 [![npm version](https://img.shields.io/npm/v/@blockrun/mcp)](https://www.npmjs.com/package/@blockrun/mcp)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
-BlockRun MCP is a Model Context Protocol server that gives Claude Code (and any MCP-compatible agent) access to real-time web search, neural research, prediction markets, crypto DEX data, X/Twitter intelligence, and 41 LLM models — all paid via x402 micropayments in USDC. No API keys. No subscriptions. No accounts.
+BlockRun MCP gives your AI agent access to live data it can't get on its own — real-time web search, neural research, prediction markets, crypto DEX prices, and X/Twitter intelligence. All paid via x402 micropayments in USDC. No API keys. No subscriptions. No accounts.
 
 ---
 
