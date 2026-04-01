@@ -6,3 +6,5 @@ dist/
 pnpm-lock.yaml
 server.json
 .gstack/
+docs/plans/
+pnpm-workspace.yaml
