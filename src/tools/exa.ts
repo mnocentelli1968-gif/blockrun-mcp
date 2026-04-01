@@ -31,10 +31,13 @@ Actions:
         const llm = getClient();
         let result;
 
+        const req = llm as unknown as { requestWithPaymentRaw: (endpoint: string, body: unknown) => Promise<unknown> };
+
         switch (action) {
           case "search":
             if (!query) throw new Error("query required for search action");
-            result = await llm.exaSearch(query, {
+            result = await req.requestWithPaymentRaw("/v1/exa/search", {
+              query,
               numResults: num_results,
               category,
               includeDomains: include_domains,
@@ -43,15 +46,18 @@ Actions:
             break;
           case "answer":
             if (!query) throw new Error("query required for answer action");
-            result = await llm.exaAnswer(query);
+            result = await req.requestWithPaymentRaw("/v1/exa/answer", { query });
             break;
           case "contents":
             if (!urls?.length) throw new Error("urls array required for contents action");
-            result = await llm.exaContents(urls);
+            result = await req.requestWithPaymentRaw("/v1/exa/contents", { urls });
             break;
           case "similar":
             if (!url) throw new Error("url required for similar action");
-            result = await llm.exaFindSimilar(url, { numResults: num_results });
+            result = await req.requestWithPaymentRaw("/v1/exa/find-similar", {
+              url,
+              numResults: num_results,
+            });
             break;
           default:
             throw new Error(`Unknown action: ${action}`);
