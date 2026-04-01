@@ -1,6 +1,6 @@
 {
   "name": "@blockrun/mcp",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "mcpName": "io.github.BlockRunAI/blockrun-mcp",
   "description": "BlockRun MCP Server - Access 41+ AI models + on-chain data via x402 micropayments. Supports stdio and HTTP transport.",
   "type": "module",
