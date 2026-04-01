@@ -39,7 +39,7 @@ No Node.js. No npm. Works from any MCP client. Pass your wallet key via `X-Walle
 | `blockrun_markets` | Prediction markets — Polymarket, Kalshi | $0.001/call |
 | `blockrun_dex` | Real-time DEX prices and liquidity via DexScreener | FREE |
 | `blockrun_image` | Image generation and editing (DALL-E 3, Flux) | $0.02–0.08 |
-| `blockrun_chat` | 41 AI models — get a second opinion or use a specialized model | per token |
+| `blockrun_chat` | Second opinion from another model (GPT, Gemini, DeepSeek, etc.) | per token |
 | `blockrun_wallet` | Wallet balance, agent budgets, spending reports | FREE |
 | `blockrun_models` | List all models with pricing | FREE |
 
@@ -94,7 +94,7 @@ Wallet resolution order:
 
 - **Website:** [blockrun.ai](https://blockrun.ai)
 - **npm:** [@blockrun/mcp](https://www.npmjs.com/package/@blockrun/mcp)
-- **Hosted MCP:** [mcp.blockrun.ai](https://mcp.blockrun.ai)
+- **Hosted MCP:** [mcp.blockrun.ai/mcp](https://mcp.blockrun.ai/mcp)
 - **GitHub:** [github.com/blockrunai/blockrun-mcp](https://github.com/blockrunai/blockrun-mcp)
 - **Telegram:** [t.me/+mroQv4-4hGgzOGUx](https://t.me/+mroQv4-4hGgzOGUx)
 - **X:** [@BlockRunAI](https://x.com/BlockRunAI)
