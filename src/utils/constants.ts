@@ -14,7 +14,7 @@ export const BASE_RPC_URLS = [
   "https://1rpc.io/base",
 ];
 
-// All 41 models organized by provider:
+// Models organized by provider:
 // OpenAI (13): openai/gpt-5.4, openai/gpt-5.4-pro, openai/gpt-5.3, openai/gpt-5.2,
 //   openai/gpt-5.4-mini, openai/gpt-5-mini, openai/gpt-5.4-nano, openai/gpt-5.2-pro,
 //   openai/gpt-5.3-codex, openai/o1, openai/o1-mini, openai/o3, openai/o3-mini
