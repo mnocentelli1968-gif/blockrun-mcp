@@ -9,23 +9,20 @@ BlockRun MCP gives your AI agent access to live data it can't get on its own —
 
 ---
 
-## Quick Start
+## Install
 
-### Option 1: Local (recommended — wallet auto-created, private key stays on your machine)
+One command. Works in every Claude Code session.
 
 ```bash
-claude mcp add blockrun -- npx @blockrun/mcp
+claude mcp add --scope user blockrun -- npx @blockrun/mcp
 ```
 
 A wallet is automatically created on first use. Fund it with USDC on Base and every tool is immediately available.
 
-### Option 2: Hosted (zero install)
-
-```bash
-claude mcp add blockrun --transport http https://mcp.blockrun.ai/mcp
-```
-
-No Node.js. No npm. Works from any MCP client. Pass your wallet key via `X-Wallet-Key` header, or run `blockrun_wallet` for setup instructions.
+> **Already have a wallet?** Pass it via env:
+> ```bash
+> claude mcp add --scope user -e BLOCKRUN_WALLET_KEY=0x... blockrun -- npx @blockrun/mcp
+> ```
 
 ---
 
@@ -45,6 +42,23 @@ No Node.js. No npm. Works from any MCP client. Pass your wallet key via `X-Walle
 
 ---
 
+## Fund Your Wallet
+
+```
+blockrun_wallet action:"status"
+```
+
+This shows your wallet address. Send USDC on Base network to that address.
+
+$5 gets you started — that's ~500 Exa searches or ~50,000 Gemini Flash calls.
+
+| Method | Steps |
+|--------|-------|
+| Coinbase | Send → USDC → Select "Base" network → Paste address |
+| Bridge | [bridge.base.org](https://bridge.base.org) → Bridge USDC to Base |
+
+---
+
 ## Why BlockRun
 
 Your AI agent already has an LLM. What it doesn't have: access to the live internet, research tools, market data, or a way to pay for services autonomously.
@@ -55,38 +69,21 @@ For multi-agent systems: parent agents can delegate spending limits to child age
 
 ---
 
-## Funding Your Wallet
-
-```
-# Check your wallet address
-blockrun_wallet action:"status"
-```
-
-Send USDC on Base network to your wallet address. $5 gets you started — that's ~500 Exa searches or ~50,000 Gemini Flash calls.
-
-| Method | Steps |
-|--------|-------|
-| Coinbase | Send → USDC → Select "Base" network → Paste address |
-| Bridge | [bridge.base.org](https://bridge.base.org) → Bridge USDC to Base |
-
----
-
 ## How Payments Work
 
 Every request is paid via the [x402 protocol](https://x402.org) — an open standard for machine-to-machine micropayments. Payments settle in USDC on Base (or Solana). Your wallet is created automatically on first use and stored locally at `~/.blockrun/.session`. The private key is used only to sign payment authorizations locally — it is never transmitted to any server.
 
 ---
 
-## Configuration
+## Hosted Option
 
-| Variable | Description |
-|----------|-------------|
-| `BLOCKRUN_WALLET_KEY` | Bring your own private key (hex for Base, bs58 for Solana). Optional — a wallet is auto-generated if not set. |
+Don't want to install locally? Use the hosted version:
 
-Wallet resolution order:
-1. `BLOCKRUN_WALLET_KEY` environment variable
-2. `BASE_CHAIN_WALLET_KEY` environment variable
-3. `~/.blockrun/.session` (auto-created on first use)
+```bash
+claude mcp add --scope user --transport http blockrun https://mcp.blockrun.ai/mcp
+```
+
+Run `blockrun_wallet` for wallet setup instructions.
 
 ---
 
@@ -94,7 +91,7 @@ Wallet resolution order:
 
 - **Website:** [blockrun.ai](https://blockrun.ai)
 - **npm:** [@blockrun/mcp](https://www.npmjs.com/package/@blockrun/mcp)
-- **Hosted MCP:** [mcp.blockrun.ai/mcp](https://mcp.blockrun.ai/mcp)
+- **Hosted MCP:** [mcp.blockrun.ai](https://mcp.blockrun.ai)
 - **GitHub:** [github.com/blockrunai/blockrun-mcp](https://github.com/blockrunai/blockrun-mcp)
 - **Telegram:** [t.me/+mroQv4-4hGgzOGUx](https://t.me/+mroQv4-4hGgzOGUx)
 - **X:** [@BlockRunAI](https://x.com/BlockRunAI)
