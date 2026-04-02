@@ -18,14 +18,14 @@ import { initializeMcpServer } from "./mcp-handler.js";
 async function main() {
   const server = new McpServer({
     name: "blockrun-mcp",
-    version: "0.6.1",
+    version: "0.6.2",
   });
 
   initializeMcpServer(server);
 
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  console.error("BlockRun MCP Server started (v0.6.1) — stdio transport");
+  console.error("BlockRun MCP Server started (v0.6.2) — stdio transport");
 }
 
 main().catch((error) => {
