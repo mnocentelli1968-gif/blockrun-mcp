@@ -11,18 +11,13 @@ BlockRun MCP gives your AI agent access to live data it can't get on its own —
 
 ## Install
 
-One command. Works in every Claude Code session.
-
 ```bash
-claude mcp add --scope user blockrun -- npx @blockrun/mcp
+claude mcp add blockrun npx @blockrun/mcp
 ```
 
-A wallet is automatically created on first use. Fund it with USDC on Base and every tool is immediately available.
+That's it. A wallet is auto-created on first use. Fund it with USDC on Base and every tool is immediately available.
 
-> **Already have a wallet?** Pass it via env:
-> ```bash
-> claude mcp add --scope user -e BLOCKRUN_WALLET_KEY=0x... blockrun -- npx @blockrun/mcp
-> ```
+To make it available in **all** projects: add `--scope user`.
 
 ---
 
