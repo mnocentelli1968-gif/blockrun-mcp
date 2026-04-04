@@ -23,8 +23,8 @@ Example paths:
 Pricing: $0.001/GET, $0.005/POST`,
       inputSchema: {
         path: z.string().describe("Endpoint path, e.g. 'polymarket/events', 'kalshi/markets/KXBTC-25MAR14'"),
-        params: z.record(z.string()).optional().describe("Query parameters for GET requests"),
-        body: z.record(z.unknown()).optional().describe("JSON body for POST queries (triggers pmQuery)"),
+        params: z.record(z.string(), z.string()).optional().describe("Query parameters for GET requests"),
+        body: z.any().optional().describe("JSON body for POST queries (triggers pmQuery)"),
       },
     },
     async ({ path, params, body }) => {
