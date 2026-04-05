@@ -1,0 +1,19 @@
+{
+  "name": "blockrun-mcp",
+  "owner": {
+    "name": "BlockRun",
+    "email": "hello@blockrun.ai"
+  },
+  "plugins": [
+    {
+      "name": "exa-research",
+      "source": "./skills/exa-research",
+      "description": "Use when researching products, finding academic papers, discovering competitors, reading webpage content, or getting cited answers grounded in real web sources."
+    },
+    {
+      "name": "prediction-markets",
+      "source": "./skills/prediction-markets",
+      "description": "Use when user asks about event probabilities, prediction market odds, what people are betting on, Polymarket or Kalshi prices, or wants to find markets on a specific topic."
+    }
+  ]
+}
