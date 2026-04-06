@@ -7,7 +7,7 @@
 **Real-time data for Claude — markets, research, X/Twitter, crypto. No API keys. Pay per call.**
 
 ```bash
-claude mcp add blockrun npx @blockrun/mcp
+claude mcp add blockrun npx -y @blockrun/mcp@latest
 ```
 
 Wallet auto-created. Fund with $5 USDC. Ask Claude anything.
@@ -49,7 +49,7 @@ After BlockRun, it can. Each query costs fractions of a cent, billed from a loca
 
 **Claude Code (recommended)**
 ```bash
-claude mcp add blockrun npx @blockrun/mcp
+claude mcp add blockrun npx -y @blockrun/mcp@latest
 ```
 
 **Claude Desktop** — add to `claude_desktop_config.json`:
