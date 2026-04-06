@@ -1,49 +1,32 @@
 // src/utils/wallet.ts
-import { LLMClient, ImageClient } from "@blockrun/llm";
-import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
-import * as fs from "fs";
-import { WALLET_DIR, WALLET_FILE, USDC_ADDRESS, BASE_RPC_URLS } from "./constants.js";
+// Use the SDK's wallet management directly — it handles scanning, fallback, and creation properly.
+import {
+  LLMClient,
+  ImageClient,
+  getOrCreateWallet,
+  getPaymentLinks,
+  formatWalletCreatedMessage,
+  formatNeedsFundingMessage,
+} from "@blockrun/llm";
 
-let _walletWasCreated = false;
-let _walletAddress: string | null = null;
 let _client: LLMClient | null = null;
 let _imageClient: ImageClient | null = null;
+let _walletInfo: { address: string; privateKey: string; isNew: boolean } | null = null;
+
+function ensureWallet() {
+  if (!_walletInfo) {
+    // SDK handles: env var → scan ~/.<provider>/wallet.json → .session → wallet.key → create new
+    _walletInfo = getOrCreateWallet();
+    if (_walletInfo.isNew) {
+      console.error(formatWalletCreatedMessage(_walletInfo.address));
+    }
+  }
+  return _walletInfo;
+}
 
 export function getOrCreateWalletKey(): `0x${string}` {
-  const envKey = process.env.BLOCKRUN_WALLET_KEY || process.env.BASE_CHAIN_WALLET_KEY;
-  if (envKey) {
-    const account = privateKeyToAccount(envKey as `0x${string}`);
-    _walletAddress = account.address;
-    return envKey as `0x${string}`;
-  }
-
-  if (fs.existsSync(WALLET_FILE)) {
-    try {
-      const savedKey = fs.readFileSync(WALLET_FILE, "utf-8").trim();
-      if (savedKey.startsWith("0x") && savedKey.length === 66) {
-        const account = privateKeyToAccount(savedKey as `0x${string}`);
-        _walletAddress = account.address;
-        return savedKey as `0x${string}`;
-      }
-    } catch {}
-  }
-
-  const newKey = generatePrivateKey();
-  const account = privateKeyToAccount(newKey);
-  _walletAddress = account.address;
-  _walletWasCreated = true;
-
-  try {
-    if (!fs.existsSync(WALLET_DIR)) {
-      fs.mkdirSync(WALLET_DIR, { recursive: true, mode: 0o700 });
-    }
-    fs.writeFileSync(WALLET_FILE, newKey, { mode: 0o600 });
-    console.error(`[BlockRun] New wallet created and saved to ${WALLET_FILE}`);
-  } catch (err) {
-    console.error(`[BlockRun] Warning: Could not save wallet to file: ${err}`);
-  }
-
-  return newKey;
+  const info = ensureWallet();
+  return info.privateKey as `0x${string}`;
 }
 
 export function getClient(): LLMClient {
@@ -63,32 +46,34 @@ export function getImageClient(): ImageClient {
 }
 
 export function getWalletInfo() {
-  const llm = getClient();
-  const address = llm.getWalletAddress();
+  const info = ensureWallet();
+  const links = getPaymentLinks(info.address);
   return {
-    address,
+    address: info.address,
     network: "Base",
     chainId: 8453,
     currency: "USDC",
-    isNew: _walletWasCreated,
-    basescanUrl: `https://basescan.org/address/${address}`,
+    isNew: info.isNew,
+    basescanUrl: links.basescan,
+    fundingUrl: links.blockrun,
   };
 }
 
+export { formatNeedsFundingMessage };
+
 export async function getUsdcBalance(address: string): Promise<number | null> {
+  const USDC_ADDRESS = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
+  const BASE_RPC_URLS = [
+    "https://mainnet.base.org",
+    "https://base.llamarpc.com",
+    "https://1rpc.io/base",
+  ];
   const data = {
     jsonrpc: "2.0",
     method: "eth_call",
-    params: [
-      {
-        to: USDC_ADDRESS,
-        data: `0x70a08231000000000000000000000000${address.slice(2)}`,
-      },
-      "latest",
-    ],
+    params: [{ to: USDC_ADDRESS, data: `0x70a08231000000000000000000000000${address.slice(2)}` }, "latest"],
     id: 1,
   };
-
   for (const rpcUrl of BASE_RPC_URLS) {
     try {
       const response = await fetch(rpcUrl, {
@@ -97,12 +82,8 @@ export async function getUsdcBalance(address: string): Promise<number | null> {
         body: JSON.stringify(data),
       });
       const result = await response.json() as { result?: string };
-      if (result.result) {
-        return parseInt(result.result, 16) / 1e6;
-      }
-    } catch {
-      continue;
-    }
+      if (result.result) return parseInt(result.result, 16) / 1e6;
+    } catch { continue; }
   }
   return null;
 }
