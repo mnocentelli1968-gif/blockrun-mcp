@@ -8,19 +8,15 @@ export function registerMarketsTool(server: McpServer): void {
   server.registerTool(
     "blockrun_markets",
     {
-      description: `Prediction market data via Predexon. Real-time data from Polymarket, Kalshi, dFlow, and Binance Futures.
-
-Usage:
-- GET: blockrun_markets with path + optional params
-- POST: blockrun_markets with path + body
+      description: `Prediction market data. Real-time from Polymarket, Kalshi.
 
 Example paths:
 - "polymarket/events" — list active events
-- "polymarket/search" + params: { q: "bitcoin" } — search events
+- "polymarket/markets" — list markets
+- "kalshi/markets" — Kalshi markets
 - "kalshi/markets/KXBTC-25MAR14" — specific market
-- "polymarket/query" + body: { filter: "active", limit: 10 } — structured query
 
-Pricing: $0.001/GET, $0.005/POST`,
+$0.001/call.`,
       inputSchema: {
         path: z.string().describe("Endpoint path, e.g. 'polymarket/events', 'kalshi/markets/KXBTC-25MAR14'"),
         params: z.record(z.string(), z.string()).optional().describe("Query parameters for GET requests"),
