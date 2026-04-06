@@ -46,7 +46,6 @@
   "dependencies": {
     "@blockrun/llm": "^1.5.0",
     "@modelcontextprotocol/sdk": "^1.0.0",
-    "jimp": "^1.6.0",
     "open": "^11.0.0",
     "qrcode": "^1.5.4",
     "viem": "^2.21.0",
