@@ -13,6 +13,7 @@ import { registerSearchTool } from "./tools/search.js";
 import { registerExaTool } from "./tools/exa.js";
 import { registerMarketsTool } from "./tools/markets.js";
 import { registerDexTool } from "./tools/dex.js";
+import { registerGLMVisionTool } from "./tools/glm-vision.js";
 
 export function initializeMcpServer(server: McpServer): void {
   const budget: BudgetState = { limit: null, spent: 0, calls: 0, agents: new Map() };
@@ -28,6 +29,9 @@ export function initializeMcpServer(server: McpServer): void {
   registerExaTool(server);
   registerMarketsTool(server);
   registerDexTool(server);
+  if (process.env.ZHIPU_API_KEY) {
+    registerGLMVisionTool(server);
+  }
 
   // Register resources
   server.registerResource(

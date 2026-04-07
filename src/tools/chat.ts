@@ -11,17 +11,23 @@ export function registerChatTool(server: McpServer, budget: BudgetState): void {
   server.registerTool(
     "blockrun_chat",
     {
-      description: `Get a second opinion from another AI model, or use a specialized model for a specific task. Useful when you want to cross-check analysis, use a reasoning model (o3, DeepSeek Reasoner) for hard problems, or use a free NVIDIA model for bulk tasks.
+      description: `Get a second opinion from another AI model, or use a specialized model for a specific task.
 
-Use routing:"smart" to auto-select the best model, or pick directly: model:"openai/o3", model:"deepseek/deepseek-reasoner", model:"nvidia/deepseek-v3.2" (free).
+Notable modes:
+- mode:"glm" → Zhipu GLM-5 / GLM-5-Turbo ($0.001/call, excellent for coding tasks, pays via USDC on BlockRun)
+- mode:"coding" → GLM-5 first, then code-specialized models
+- mode:"cheap" → GLM-5, NVIDIA free, DeepSeek
+- mode:"reasoning" → o3, o1, DeepSeek-R1
+- mode:"free" → NVIDIA models (no cost)
+- routing:"smart" → auto-select via ClawRouter
 
-Prefer blockrun_search or blockrun_exa for research — they're purpose-built for that.
+Pick directly: model:"zai/glm-5", model:"openai/o3", model:"nvidia/deepseek-v3.2" (free).
 
-Run blockrun_models to see all available models with pricing.`,
+Run blockrun_models to see all 41+ models with pricing.`,
       inputSchema: {
         message: z.string().describe("Your message to the AI"),
-        model: z.string().optional().describe("Specific model ID (e.g., 'openai/gpt-4o')"),
-        mode: z.enum(["fast", "balanced", "powerful", "cheap", "reasoning", "free", "coding"]).optional().describe("Smart routing mode (ignored if model specified)"),
+        model: z.string().optional().describe("Specific model ID (e.g., 'zai/glm-5', 'openai/o3')"),
+        mode: z.enum(["fast", "balanced", "powerful", "cheap", "reasoning", "free", "coding", "glm"]).optional().describe("Routing mode: glm = Zhipu GLM-5/GLM-5-Turbo ($0.001/call, great for coding), coding = GLM-5 + code models, cheap = GLM-5 + budget, free = NVIDIA only (ignored if model specified)"),
         routing: z.enum(["smart"]).optional().describe('Set to "smart" to auto-select the optimal model via ClawRouter (14-dimension AI routing)'),
         routing_profile: z.enum(["free", "eco", "auto", "premium"]).optional().default("auto").describe('Cost/quality profile for ClawRouter: "free" (zero cost NVIDIA), "eco" (budget), "auto" (balanced, default), "premium" (best quality) (only applies when routing: "smart")'),
         system: z.string().optional().describe("Optional system prompt"),

@@ -33,10 +33,11 @@ export const MODEL_TIERS = {
   fast: ["google/gemini-2.5-flash", "google/gemini-3.1-flash-lite", "openai/gpt-5-mini", "deepseek/deepseek-chat", "google/gemini-3-flash-preview"],
   balanced: ["openai/gpt-5.4", "anthropic/claude-sonnet-4.6", "google/gemini-2.5-pro", "openai/gpt-5.3", "google/gemini-3.1-pro"],
   powerful: ["openai/gpt-5.4-pro", "anthropic/claude-opus-4.6", "anthropic/claude-opus-4.5", "openai/o3", "openai/gpt-5.4"],
-  cheap: ["nvidia/gpt-oss-120b", "nvidia/deepseek-v3.2", "google/gemini-2.5-flash", "deepseek/deepseek-chat", "openai/gpt-5.4-nano"],
+  cheap: ["zai/glm-5", "zai/glm-5-turbo", "nvidia/gpt-oss-120b", "nvidia/deepseek-v3.2", "google/gemini-2.5-flash", "deepseek/deepseek-chat", "openai/gpt-5.4-nano"],
   reasoning: ["openai/o3", "openai/o1", "openai/o3-mini", "deepseek/deepseek-reasoner", "openai/gpt-5.3-codex"],
-  free: ["nvidia/gpt-oss-120b", "nvidia/deepseek-v3.2", "nvidia/nemotron-ultra-253b", "nvidia/nemotron-super-49b", "nvidia/qwen3-coder-480b", "nvidia/llama-4-maverick", "nvidia/gpt-oss-20b"],
-  coding: ["openai/gpt-5.3-codex", "nvidia/qwen3-coder-480b", "nvidia/devstral-2-123b", "anthropic/claude-sonnet-4.6", "openai/gpt-5.4"],
+  free: ["nvidia/gpt-oss-120b", "nvidia/deepseek-v3.2", "nvidia/nemotron-ultra-253b", "nvidia/nemotron-super-49b", "nvidia/qwen3-coder-480b", "nvidia/llama-4-maverick", "nvidia/gpt-oss-20b", "nvidia/glm-4.7"],
+  coding: ["zai/glm-5", "openai/gpt-5.3-codex", "nvidia/qwen3-coder-480b", "nvidia/devstral-2-123b", "anthropic/claude-sonnet-4.6", "openai/gpt-5.4"],
+  glm: ["zai/glm-5", "zai/glm-5-turbo", "nvidia/glm-4.7"],
 } as const;
 
 export type RoutingMode = keyof typeof MODEL_TIERS;
