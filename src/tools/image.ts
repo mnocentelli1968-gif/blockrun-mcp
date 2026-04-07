@@ -8,18 +8,22 @@ export function registerImageTool(server: McpServer): void {
   server.registerTool(
     "blockrun_image",
     {
-      description: `Generate or edit images via BlockRun.
+      description: `Generate or edit images via BlockRun. Pays with USDC — no separate API keys needed.
 
 Actions:
 - generate (default): Create image from text prompt
 - edit: Transform an existing image using img2img
 
-Generation models: openai/dall-e-3 ($0.04-0.08), together/flux-schnell ($0.02), google/nano-banana
+Generation models:
+- zai/cogview-4 ($0.02) — Zhipu CogView-4, photorealistic, great for detailed scenes
+- openai/dall-e-3 ($0.04-0.08) — High quality, prompt adherence
+- together/flux-schnell ($0.02) — Fast, stylized
+- google/nano-banana — Google image model
 Edit models: openai/gpt-image-1 (default for edits)`,
       inputSchema: {
         prompt: z.string().describe("Image description or edit instructions"),
         action: z.enum(["generate", "edit"]).optional().default("generate").describe("generate: create from text; edit: transform existing image"),
-        model: z.enum(["openai/dall-e-3", "together/flux-schnell", "google/nano-banana", "openai/gpt-image-1"]).optional().describe("Model to use (default: dall-e-3 for generate, gpt-image-1 for edit)"),
+        model: z.enum(["zai/cogview-4", "openai/dall-e-3", "together/flux-schnell", "google/nano-banana", "openai/gpt-image-1"]).optional().describe("Model to use (default: dall-e-3 for generate, gpt-image-1 for edit). zai/cogview-4 is Zhipu's photorealistic model."),
         image: z.string().optional().describe("Source image for edit action: base64-encoded image or URL"),
         size: z.enum(["1024x1024", "1792x1024", "1024x1792"]).optional().default("1024x1024"),
         quality: z.enum(["standard", "hd"]).optional().default("standard"),
@@ -43,7 +47,7 @@ Edit models: openai/gpt-image-1 (default for edits)`,
           });
         } else {
           response = await imgClient.generate(prompt, {
-            model: (model || "openai/dall-e-3") as "openai/dall-e-3" | "together/flux-schnell" | "google/nano-banana",
+            model: (model || "openai/dall-e-3") as "openai/dall-e-3" | "together/flux-schnell" | "google/nano-banana" | "zai/cogview-4",
             size: size as "1024x1024" | "1792x1024" | "1024x1792",
             quality: quality as "standard" | "hd",
           });
