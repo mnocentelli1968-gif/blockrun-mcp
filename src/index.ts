@@ -13,7 +13,7 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { initializeMcpServer } from "./mcp-handler.js";
 import { warnOnLeakedKeys } from "./utils/key-leak-scanner.js";
 
-const VERSION = "0.7.1";
+const VERSION = "0.7.2";
 
 async function checkForUpdate() {
   try {
