@@ -9,6 +9,7 @@ import { registerChatTool } from "./tools/chat.js";
 import { registerModelsTool } from "./tools/models.js";
 import { registerImageTool } from "./tools/image.js";
 import { registerMusicTool } from "./tools/music.js";
+import { registerVideoTool } from "./tools/video.js";
 import { registerSearchTool } from "./tools/search.js";
 import { registerExaTool } from "./tools/exa.js";
 import { registerMarketsTool } from "./tools/markets.js";
@@ -24,6 +25,7 @@ export function initializeMcpServer(server: McpServer): void {
   registerModelsTool(server, modelCache);
   registerImageTool(server);
   registerMusicTool(server);
+  registerVideoTool(server);
   registerSearchTool(server);
   registerExaTool(server);
   registerMarketsTool(server);
