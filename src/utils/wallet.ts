@@ -3,6 +3,7 @@
 import {
   LLMClient,
   ImageClient,
+  PriceClient,
   getOrCreateWallet,
   getPaymentLinks,
   formatWalletCreatedMessage,
@@ -11,6 +12,7 @@ import {
 
 let _client: LLMClient | null = null;
 let _imageClient: ImageClient | null = null;
+let _priceClient: PriceClient | null = null;
 let _walletInfo: { address: string; privateKey: string; isNew: boolean } | null = null;
 
 function ensureWallet() {
@@ -43,6 +45,14 @@ export function getImageClient(): ImageClient {
     _imageClient = new ImageClient({ privateKey });
   }
   return _imageClient;
+}
+
+export function getPriceClient(): PriceClient {
+  if (!_priceClient) {
+    const privateKey = getOrCreateWalletKey();
+    _priceClient = new PriceClient({ privateKey });
+  }
+  return _priceClient;
 }
 
 export function getWalletInfo() {
