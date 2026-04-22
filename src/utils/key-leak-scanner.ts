@@ -109,7 +109,7 @@ export function warnOnLeakedKeys(): boolean {
   console.error("    3. Reconnect using the local package (signs locally, key");
   console.error("       never leaves your machine):");
   console.error("         claude mcp remove blockrun");
-  console.error("         claude mcp add blockrun npx -y @blockrun/mcp@latest");
+  console.error("         claude mcp add blockrun -s user -- npx -y @blockrun/mcp@latest");
   console.error("");
   console.error("  Details: https://github.com/BlockRunAI/blockrun-mcp-server/issues/1");
   console.error("");

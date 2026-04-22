@@ -7,7 +7,7 @@
 **Real-time data for Claude — markets, research, X/Twitter, crypto. No API keys. Pay per call.**
 
 ```bash
-claude mcp add blockrun npx -y @blockrun/mcp@latest
+claude mcp add blockrun -s user -- npx -y @blockrun/mcp@latest
 ```
 
 Wallet auto-created. Fund with $5 USDC. Ask Claude anything.
@@ -49,8 +49,11 @@ After BlockRun, it can. Each query costs fractions of a cent, billed from a loca
 
 **Claude Code (recommended)**
 ```bash
-claude mcp add blockrun npx -y @blockrun/mcp@latest
+claude mcp add blockrun -s user -- npx -y @blockrun/mcp@latest
 ```
+
+The `-s user` flag installs globally (available in every project). The `--` separator
+ensures `-y` is passed to `npx`, not parsed by `claude mcp add`.
 
 **Claude Desktop** — add to `claude_desktop_config.json`:
 ```json
@@ -66,7 +69,7 @@ claude mcp add blockrun npx -y @blockrun/mcp@latest
 
 **Hosted (no install, always latest)**
 ```bash
-claude mcp add --transport http blockrun https://mcp.blockrun.ai/mcp
+claude mcp add blockrun -s user --transport http https://mcp.blockrun.ai/mcp
 ```
 
 ---
