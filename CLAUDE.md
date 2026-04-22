@@ -34,7 +34,7 @@ src/
 ## Install in Claude Code
 
 ```bash
-claude mcp add blockrun npx -y @blockrun/mcp@latest
+claude mcp add blockrun -s user -- npx -y @blockrun/mcp@latest
 ```
 
 ## Conventions
