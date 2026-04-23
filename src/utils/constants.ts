@@ -18,16 +18,18 @@ export const BASE_RPC_URLS = [
 // OpenAI (13): openai/gpt-5.4, openai/gpt-5.4-pro, openai/gpt-5.3, openai/gpt-5.2,
 //   openai/gpt-5.4-mini, openai/gpt-5-mini, openai/gpt-5.4-nano, openai/gpt-5.2-pro,
 //   openai/gpt-5.3-codex, openai/o1, openai/o1-mini, openai/o3, openai/o3-mini
-// Anthropic (4): anthropic/claude-haiku-4.5, anthropic/claude-sonnet-4.6,
-//   anthropic/claude-opus-4.5, anthropic/claude-opus-4.6, anthropic/claude-opus-4.7
+// Anthropic (flagships): anthropic/claude-opus-4.7 (1M context), anthropic/claude-opus-4.6,
+//   anthropic/claude-sonnet-4.6, anthropic/claude-haiku-4.5 (plus opus-4.5, opus-4, sonnet-4 legacy)
 // Google (7): google/gemini-3.1-pro, google/gemini-3-pro-preview, google/gemini-3-flash-preview,
 //   google/gemini-2.5-pro, google/gemini-2.5-flash, google/gemini-3.1-flash-lite, google/gemini-2.5-flash-lite
 // DeepSeek (2): deepseek/deepseek-chat, deepseek/deepseek-reasoner
 // Moonshot (2): moonshot/kimi-k2.6 (flagship, $0.95/$4, vision + reasoning), moonshot/kimi-k2.5 (legacy)
-// NVIDIA (12, most FREE): nvidia/gpt-oss-120b*, nvidia/gpt-oss-20b*, nvidia/kimi-k2.5,
-//   nvidia/nemotron-ultra-253b*, nvidia/nemotron-3-super-120b*, nvidia/nemotron-super-49b*,
-//   nvidia/deepseek-v3.2*, nvidia/mistral-large-3-675b*, nvidia/qwen3-coder-480b*,
-//   nvidia/devstral-2-123b*, nvidia/glm-4.7*, nvidia/llama-4-maverick*  (* = free)
+// NVIDIA (8 visible, all FREE) after 2026-04-21 refresh: nvidia/qwen3-next-80b-a3b-thinking
+//   (116 tok/s reasoning flagship), nvidia/mistral-small-4-119b (114 tok/s fastest chat),
+//   nvidia/gpt-oss-120b, nvidia/deepseek-v3.2, nvidia/qwen3-coder-480b, nvidia/llama-4-maverick,
+//   nvidia/gpt-oss-20b, nvidia/glm-4.7. Retired (still backend-aliased, hidden from catalogue):
+//   nvidia/kimi-k2.5, nvidia/nemotron-{ultra-253b,3-super-120b,super-49b},
+//   nvidia/mistral-large-3-675b, nvidia/devstral-2-123b, nvidia/qwen3.5-397b-a17b.
 // ZAI (2): zai/glm-5, zai/glm-5-turbo
 // MiniMax (1): minimax/minimax-m2.7
 // xAI (hidden, API-routable): xai/grok-4.20-reasoning, xai/grok-4.20-non-reasoning, xai/grok-4-fast-reasoning
@@ -37,8 +39,8 @@ export const MODEL_TIERS = {
   powerful: ["openai/gpt-5.4-pro", "anthropic/claude-opus-4.7", "anthropic/claude-opus-4.6", "openai/o3", "openai/gpt-5.4"],
   cheap: ["zai/glm-5", "zai/glm-5-turbo", "nvidia/gpt-oss-120b", "nvidia/deepseek-v3.2", "google/gemini-2.5-flash", "deepseek/deepseek-chat", "openai/gpt-5.4-nano"],
   reasoning: ["openai/o3", "openai/o1", "openai/o3-mini", "deepseek/deepseek-reasoner", "moonshot/kimi-k2.6", "openai/gpt-5.3-codex"],
-  free: ["nvidia/gpt-oss-120b", "nvidia/deepseek-v3.2", "nvidia/nemotron-ultra-253b", "nvidia/nemotron-super-49b", "nvidia/qwen3-coder-480b", "nvidia/llama-4-maverick", "nvidia/gpt-oss-20b", "nvidia/glm-4.7"],
-  coding: ["zai/glm-5", "openai/gpt-5.3-codex", "moonshot/kimi-k2.6", "nvidia/qwen3-coder-480b", "nvidia/devstral-2-123b", "anthropic/claude-sonnet-4.6", "openai/gpt-5.4"],
+  free: ["nvidia/qwen3-next-80b-a3b-thinking", "nvidia/mistral-small-4-119b", "nvidia/gpt-oss-120b", "nvidia/deepseek-v3.2", "nvidia/qwen3-coder-480b", "nvidia/llama-4-maverick", "nvidia/gpt-oss-20b", "nvidia/glm-4.7"],
+  coding: ["zai/glm-5", "openai/gpt-5.3-codex", "moonshot/kimi-k2.6", "nvidia/qwen3-coder-480b", "anthropic/claude-sonnet-4.6", "openai/gpt-5.4"],
   glm: ["zai/glm-5", "zai/glm-5-turbo", "nvidia/glm-4.7"],
 } as const;
 
