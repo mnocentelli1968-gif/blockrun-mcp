@@ -164,6 +164,63 @@ CONSTRAINTS: No extra objects. No text. Preserve watch proportions exactly.
 # (check the MCP's `blockrun_image` tool for the multi-image payload shape)
 ```
 
+## Worked Example: "make me a cool poster announcing 100 trillion tokens on blockrun.ai"
+
+This is the real prompt that produced the image below — a vague, one-line user ask turned into a structured prompt that rendered every copy line correctly on the first shot.
+
+![100 Trillion Tokens poster generated with openai/gpt-image-2](./example-100t-poster.jpg)
+
+**User asked for:** *"generate 1 cool poster showing we hit 100 Trillion Token LLM consumption on blockrun.ai"*
+
+**Clarifying questions worth asking before prompting:**
+
+- Audience → *social media flex for X/Twitter*
+- Aesthetic → *retro-futuristic synthwave*
+- Hero text → *"100 TRILLION TOKENS"*
+- Supporting copy → *"The world's largest pay-per-call LLM gateway" · "Served on blockrun.ai" · "Powered by x402 micropayments" · "Now with Seedance + GPT Image 2"*
+- Aspect ratio → *16:9 landscape for X timeline*
+
+**Final prompt passed to `openai/gpt-image-2` at `size="1536x1024"`:**
+
+```
+SCENE: A retro-futuristic synthwave scene, 80s vaporwave aesthetic, cinematic
+16:9 composition. Deep purple-to-magenta sunset sky with a giant glowing
+pink-and-orange setting sun cut by thin horizontal neon lines. Palm tree
+silhouettes on both sides. Faint city skyline in the distance. An infinite
+chrome grid floor vanishing at the horizon with pink and cyan perspective lines.
+
+SUBJECT: A milestone announcement poster with the hero text
+"100 TRILLION TOKENS" dominating the center of the frame.
+
+DETAILS: Hero text in huge glossy chrome letters with a pink-to-cyan gradient
+and neon rim light, bold condensed sans-serif, CRT glow, slight scanline
+texture across the letters. Faint CRT scanlines overlay the entire frame.
+Subtle film grain. Chromatic aberration on edges. High contrast, symmetrical,
+cinematic poster composition.
+
+USE CASE: Social media announcement poster for X/Twitter, 16:9 landscape.
+
+CONSTRAINTS:
+- HERO (EXACT TEXT, centered): "100 TRILLION TOKENS"
+- SUB under the hero (clean neon cyan, wide letter-spacing, EXACT TEXT):
+  "The world's largest pay-per-call LLM gateway"
+- TOP-CENTER BANNER inside a thin neon outline (EXACT TEXT):
+  "NOW WITH SEEDANCE + GPT IMAGE 2"
+- BOTTOM-LEFT TAG (monospace, magenta, EXACT TEXT):
+  "> Served on blockrun.ai"
+- BOTTOM-RIGHT TAG (monospace, magenta, EXACT TEXT):
+  "> Powered by x402 micropayments"
+- Legible crisp typography. No extra words. No duplicate text. No watermark.
+```
+
+**Why this worked:**
+
+1. **Every piece of copy got a role label** (HERO / SUB / BANNER / TAG) with position and style — no guessing.
+2. **Every text string was marked `(EXACT TEXT)`** and wrapped in quotes.
+3. **Concrete visual facts** (CRT scanlines, chrome gradient, palm silhouettes) replaced vague words like "cool" and "awesome."
+4. **`No duplicate text. No extra words.`** was in the CONSTRAINTS block — GPT Image 2 loves to duplicate headlines if you don't forbid it.
+5. **Aspect ratio** chosen from the valid GPT Image 2 set (`1536x1024`) rather than asking for "16:9" and hoping.
+
 ## Common Workflows
 
 ### Poster / social asset
