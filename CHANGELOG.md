@@ -2,6 +2,17 @@
 
 All notable changes to BlockRun MCP will be documented in this file.
 
+## 0.11.0
+
+- **`blockrun_video` switches to async submit+poll**. The blockrun.ai video
+  endpoint moved from sync to async on 2026-04-23. The tool now submits the
+  job, then polls `/v1/videos/generations/{id}` with the same signed header
+  every 5s until upstream returns `completed` (5min total budget). Tool input
+  and output shapes are unchanged. Settlement only fires on the first completed
+  poll, so upstream failure or budget exhaustion = zero charge.
+- Bumped advertised `maxTimeoutSeconds` on video requests to 600s so the
+  signed authorization stays valid across the polling window.
+
 ## 0.10.0
 
 - **`blockrun_image` gains `openai/gpt-image-2`** (ChatGPT Images 2.0). Reasoning-driven generation with multilingual text rendering and character consistency. Added to the model `z.enum` so agents can pick it; edit-path default switched from `gpt-image-1` → `gpt-image-2` (gpt-image-1 still accepted). Description paragraph lists the new model at $0.06-0.12.
