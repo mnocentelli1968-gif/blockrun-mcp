@@ -11,15 +11,18 @@ import {
 } from "@blockrun/llm";
 
 const BLOCKRUN_API = "https://blockrun.ai/api";
-const VIDEO_TIMEOUT = 300_000; // 5 min — video gen + polling can take up to 3 min
+// Overall budget for the async flow (submit + client-side polling).
+// Upstream jobs typically finish in 60-180s; 5 min gives comfortable margin.
+const TOTAL_BUDGET_MS = 300_000;
+const POLL_INTERVAL_MS = 5_000;
 
 export function registerVideoTool(server: McpServer): void {
   server.registerTool(
     "blockrun_video",
     {
-      description: `Generate short AI videos via BlockRun x402.
+      description: `Generate short AI videos via BlockRun x402 (async, client-polled).
 
-Turns a text prompt (and optional seed image) into a short MP4 clip. The call blocks until the video is ready (30-120s typical; hard-capped at 85s for Seedance to stay under edge timeouts).
+Turns a text prompt (and optional seed image) into a short MP4 clip. The tool submits the job, then polls until the video is ready (typical total wall-time 60-180s; 5 min hard cap). Payment is settled only when upstream returns a finished video — if the job fails or we give up, you are not charged.
 
 Models:
 - xai/grok-imagine-video ($0.05/sec, 8s default -> $0.42/clip) — stylized, fast
@@ -39,14 +42,14 @@ Returns a permanent blockrun-hosted MP4 URL (the gateway mirrors the asset to GC
       try {
         const privateKey = getOrCreateWalletKey();
         const account = privateKeyToAccount(privateKey);
-        const url = `${BLOCKRUN_API}/v1/videos/generations`;
+        const submitUrl = `${BLOCKRUN_API}/v1/videos/generations`;
 
         const body: Record<string, unknown> = { model, prompt };
         if (image_url) body.image_url = image_url;
         if (duration_seconds !== undefined) body.duration_seconds = duration_seconds;
 
-        // Step 1: get 402
-        const resp402 = await fetchWithTimeout(url, {
+        // Step 1: get 402 with price + requirements
+        const resp402 = await fetchWithTimeout(submitUrl, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(body),
@@ -70,68 +73,141 @@ Returns a permanent blockrun-hosted MP4 URL (the gateway mirrors the asset to GC
           details.amount,
           details.network || "eip155:8453",
           {
-            resourceUrl: details.resource?.url || url,
+            resourceUrl: details.resource?.url || submitUrl,
             resourceDescription: details.resource?.description || "BlockRun Video Generation",
-            maxTimeoutSeconds: details.maxTimeoutSeconds || 300,
+            // Bump to 10 min so the signed authorization stays valid through the
+            // async polling window. Default (~5 min) is tight when upstream is slow.
+            maxTimeoutSeconds: Math.max(details.maxTimeoutSeconds || 0, 600),
             extra: details.extra,
           }
         );
 
-        // Step 2: generate with payment (takes 30-120s)
-        const resp = await fetchWithTimeout(url, {
+        // Step 2: submit job with payment — server verifies (does not settle)
+        // and returns { id, poll_url, status: "queued" } in ~3-20s.
+        const submitResp = await fetchWithTimeout(submitUrl, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
             "PAYMENT-SIGNATURE": paymentPayload,
           },
           body: JSON.stringify(body),
-        }, VIDEO_TIMEOUT);
+        }, 30_000);
 
-        if (resp.status === 402) {
+        if (submitResp.status === 402) {
           throw new Error("Payment rejected. Check your wallet balance.");
         }
-
-        if (!resp.ok) {
-          const errBody = await resp.json().catch(() => ({ error: "Request failed" })) as Record<string, unknown>;
-          throw new Error(`API error ${resp.status}: ${JSON.stringify(errBody)}`);
+        if (!submitResp.ok && submitResp.status !== 202) {
+          const errBody = await submitResp.json().catch(() => ({ error: "Submit failed" })) as Record<string, unknown>;
+          throw new Error(`API error ${submitResp.status}: ${JSON.stringify(errBody)}`);
         }
 
-        const data = await resp.json() as {
-          data: Array<{
-            url: string;
-            source_url?: string;
-            duration_seconds?: number;
-            request_id?: string;
-            backed_up?: boolean;
-          }>;
+        const submitData = await submitResp.json() as {
+          id?: string;
+          status?: string;
+          poll_url?: string;
+          duration_seconds?: number;
           model?: string;
         };
 
-        const clip = data.data?.[0];
-        if (!clip?.url) throw new Error("No video URL in response");
+        if (!submitData.id || !submitData.poll_url) {
+          throw new Error(`Submit response missing id/poll_url: ${JSON.stringify(submitData)}`);
+        }
 
-        const txHash = resp.headers.get("X-Payment-Receipt") || resp.headers.get("x-payment-receipt");
+        // Step 3: poll with the SAME payment header. Settlement happens on the
+        // first completed poll; failure or caller giving up = no charge.
+        const pollAbsoluteUrl = submitData.poll_url.startsWith("http")
+          ? submitData.poll_url
+          : `${BLOCKRUN_API.replace(/\/api$/, "")}${submitData.poll_url}`;
+
+        const startedAt = Date.now();
+        let lastStatus = submitData.status || "queued";
+        let completed: {
+          url: string;
+          source_url?: string;
+          duration_seconds?: number;
+          request_id?: string;
+          backed_up?: boolean;
+          modelReturned?: string;
+          txHash?: string;
+        } | null = null;
+
+        while (Date.now() - startedAt < TOTAL_BUDGET_MS) {
+          await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
+
+          const pollResp = await fetchWithTimeout(pollAbsoluteUrl, {
+            method: "GET",
+            headers: { "PAYMENT-SIGNATURE": paymentPayload },
+          }, 90_000);
+
+          const pollData = await pollResp.json().catch(() => ({})) as {
+            status?: string;
+            data?: Array<{
+              url: string;
+              source_url?: string;
+              duration_seconds?: number;
+              request_id?: string;
+              backed_up?: boolean;
+            }>;
+            error?: string;
+            model?: string;
+          };
+
+          lastStatus = pollData.status || lastStatus;
+
+          if (pollResp.status === 202 && (lastStatus === "queued" || lastStatus === "in_progress")) {
+            continue;
+          }
+
+          if (lastStatus === "failed") {
+            throw new Error(`Upstream generation failed: ${pollData.error || "unknown"}. No payment taken.`);
+          }
+
+          if (pollResp.ok && lastStatus === "completed") {
+            const clip = pollData.data?.[0];
+            if (!clip?.url) throw new Error("Completed poll missing video URL");
+            completed = {
+              url: clip.url,
+              source_url: clip.source_url,
+              duration_seconds: clip.duration_seconds,
+              request_id: clip.request_id,
+              backed_up: clip.backed_up,
+              modelReturned: pollData.model,
+              txHash: pollResp.headers.get("X-Payment-Receipt") ||
+                pollResp.headers.get("x-payment-receipt") || undefined,
+            };
+            break;
+          }
+
+          if (!pollResp.ok && pollResp.status !== 202 && pollResp.status !== 504) {
+            throw new Error(`Poll error ${pollResp.status}: ${JSON.stringify(pollData)}`);
+          }
+          // 504 on poll = upstream poll timeout, transient — retry.
+        }
+
+        if (!completed) {
+          throw new Error(`Video generation did not complete within ${Math.round(TOTAL_BUDGET_MS / 1000)}s (last status: ${lastStatus}). No payment was taken.`);
+        }
 
         const lines = [
           `🎬 Video ready!`,
-          `URL: ${clip.url}`,
-          `Duration: ${clip.duration_seconds ? `${clip.duration_seconds}s` : "8s"}`,
-          `Model: ${data.model || model}`,
-          ...(clip.backed_up ? [`Backed up to BlockRun storage (URL is permanent)`] : clip.source_url ? [`Source URL: ${clip.source_url}`] : []),
-          ...(clip.request_id ? [`Request ID: ${clip.request_id}`] : []),
-          ...(txHash ? [`Tx: ${txHash}`] : []),
+          `URL: ${completed.url}`,
+          `Duration: ${completed.duration_seconds ? `${completed.duration_seconds}s` : "8s"}`,
+          `Model: ${completed.modelReturned || model}`,
+          ...(completed.backed_up ? [`Backed up to BlockRun storage (URL is permanent)`] : completed.source_url ? [`Source URL: ${completed.source_url}`] : []),
+          ...(completed.request_id ? [`Request ID: ${completed.request_id}`] : []),
+          ...(completed.txHash ? [`Tx: ${completed.txHash}`] : []),
         ];
 
         return {
           content: [{ type: "text", text: lines.join("\n") }],
           structuredContent: {
-            url: clip.url,
-            ...(clip.source_url ? { source_url: clip.source_url } : {}),
-            duration_seconds: clip.duration_seconds,
-            model: data.model || model,
-            ...(clip.request_id ? { request_id: clip.request_id } : {}),
-            ...(clip.backed_up !== undefined ? { backed_up: clip.backed_up } : {}),
-            ...(txHash ? { txHash } : {}),
+            url: completed.url,
+            ...(completed.source_url ? { source_url: completed.source_url } : {}),
+            duration_seconds: completed.duration_seconds,
+            model: completed.modelReturned || model,
+            ...(completed.request_id ? { request_id: completed.request_id } : {}),
+            ...(completed.backed_up !== undefined ? { backed_up: completed.backed_up } : {}),
+            ...(completed.txHash ? { txHash: completed.txHash } : {}),
           },
         };
       } catch (err) {
@@ -142,7 +218,7 @@ Returns a permanent blockrun-hosted MP4 URL (the gateway mirrors the asset to GC
             isError: true,
           };
         }
-        if (errMsg.includes("abort") || errMsg.includes("timeout") || errMsg.includes("Timeout") || errMsg.includes("timed out")) {
+        if (errMsg.includes("abort") || errMsg.includes("timeout") || errMsg.includes("Timeout") || errMsg.includes("timed out") || errMsg.includes("did not complete within")) {
           return {
             content: [{ type: "text", text: `Video generation timed out. The upstream async job didn't complete in time — please try again.\nError: ${errMsg}` }],
             isError: true,
