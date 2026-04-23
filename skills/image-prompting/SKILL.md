@@ -7,8 +7,6 @@ description: Use when generating or editing images via `blockrun_image` — espe
 
 Most image failures are prompt failures. This skill gives the MCP agent a repeatable structure for turning any user request into a prompt that renders clean typography, preserves layout on edits, and avoids AI slop. Defaults are tuned for **GPT Image 2** (best legible text), with fallbacks for DALL-E 3, Flux, and Nano Banana.
 
-Source of truth: fal.ai *Prompting GPT Image 2* guide. Principles transfer across models.
-
 ## Quick Decision Table
 
 | User wants... | Model | Mode | Size | Cost |
@@ -41,7 +39,7 @@ CONSTRAINTS: what must not drift. "No extra text." "No duplicate elements."
 "Preserve face." "Legible typography." Repeat these on every edit.
 ```
 
-> *"The fifth slot is where most mediocre prompts fail silently. Describe the idea without bounding it and the model gets inventive in directions you will regret."* — fal.ai
+> The fifth slot is where most mediocre prompts fail silently. Describe the idea without bounding it and the model gets inventive in directions you will regret.
 
 ## Text & Typography Rules (the #1 differentiator for GPT Image 2)
 
@@ -237,5 +235,4 @@ CONSTRAINTS:
 
 ## Reference
 
-- fal.ai — [Prompting GPT Image 2](https://fal.ai/learn/tools/prompting-gpt-image-2) (primary source)
-- BlockRun image models: `openai/gpt-image-2`, `openai/gpt-image-1`, `openai/dall-e-3`, `google/nano-banana`, `google/nano-banana-pro`, `black-forest/flux-1.1-pro`, `zai/cogview-4`, `xai/grok-imagine-image`, `xai/grok-imagine-image-pro`
+BlockRun image models: `openai/gpt-image-2`, `openai/gpt-image-1`, `openai/dall-e-3`, `google/nano-banana`, `google/nano-banana-pro`, `black-forest/flux-1.1-pro`, `zai/cogview-4`, `xai/grok-imagine-image`, `xai/grok-imagine-image-pro`
