@@ -19,16 +19,20 @@ export function registerVideoTool(server: McpServer): void {
     {
       description: `Generate short AI videos via BlockRun x402.
 
-Uses xAI's Grok Imagine Video to turn a text prompt (and optional seed image) into an 8-second MP4 clip. The call blocks until the video is ready (30-120s typical).
+Turns a text prompt (and optional seed image) into a short MP4 clip. The call blocks until the video is ready (30-120s typical; hard-capped at 85s for Seedance to stay under edge timeouts).
 
-Model: xai/grok-imagine-video ($0.05/sec, 8s default -> $0.42/clip)
+Models:
+- xai/grok-imagine-video ($0.05/sec, 8s default -> $0.42/clip) — stylized, fast
+- bytedance/seedance-1.5-pro ($0.03/sec, 720p, 5s default up to 10s) — cheapest
+- bytedance/seedance-2.0-fast ($0.15/sec, ~60-80s gen) — sweet-spot price/quality
+- bytedance/seedance-2.0 ($0.30/sec, 720p Pro) — highest quality
 
 Returns a permanent blockrun-hosted MP4 URL (the gateway mirrors the asset to GCS so URLs don't expire).`,
       inputSchema: {
         prompt: z.string().describe("Text description of the video to generate. E.g. 'a red apple slowly spinning on a wooden table', 'a hummingbird hovering near a red flower, ultra slow motion'"),
         image_url: z.string().url().optional().describe("Optional seed image URL for image-to-video generation"),
-        duration_seconds: z.number().int().min(1).max(60).optional().describe("Duration to bill for (defaults to the model's 8s default). Must not exceed max_duration_seconds."),
-        model: z.enum(["xai/grok-imagine-video"]).optional().default("xai/grok-imagine-video").describe("Video model to use"),
+        duration_seconds: z.number().int().min(1).max(60).optional().describe("Duration to bill for (defaults to the model's default — 8s for xAI, 5s for Seedance; Seedance supports up to 10s)."),
+        model: z.enum(["xai/grok-imagine-video", "bytedance/seedance-1.5-pro", "bytedance/seedance-2.0-fast", "bytedance/seedance-2.0"]).optional().default("xai/grok-imagine-video").describe("Video model to use"),
       },
     },
     async ({ prompt, image_url, duration_seconds, model }) => {
@@ -140,7 +144,7 @@ Returns a permanent blockrun-hosted MP4 URL (the gateway mirrors the asset to GC
         }
         if (errMsg.includes("abort") || errMsg.includes("timeout") || errMsg.includes("Timeout") || errMsg.includes("timed out")) {
           return {
-            content: [{ type: "text", text: `Video generation timed out. xAI's async job didn't complete in time — please try again.\nError: ${errMsg}` }],
+            content: [{ type: "text", text: `Video generation timed out. The upstream async job didn't complete in time — please try again.\nError: ${errMsg}` }],
             isError: true,
           };
         }

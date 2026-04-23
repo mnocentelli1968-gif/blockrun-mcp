@@ -19,13 +19,14 @@ Generation models:
 - xai/grok-imagine-image ($0.02) — xAI Grok Imagine, stylized, fast
 - xai/grok-imagine-image-pro ($0.07) — xAI Grok Imagine Pro, higher quality
 - openai/gpt-image-1 ($0.02-0.04) — GPT native image generation
+- openai/gpt-image-2 ($0.06-0.12) — ChatGPT Images 2.0, reasoning-driven, multilingual text rendering + character consistency
 - openai/dall-e-3 ($0.04-0.08) — High quality, prompt adherence
 - google/nano-banana ($0.05) — Google image model
-Edit models: openai/gpt-image-1 (default for edits)`,
+Edit models: openai/gpt-image-1, openai/gpt-image-2 (default for edits)`,
       inputSchema: {
         prompt: z.string().describe("Image description or edit instructions"),
         action: z.enum(["generate", "edit"]).optional().default("generate").describe("generate: create from text; edit: transform existing image"),
-        model: z.enum(["zai/cogview-4", "openai/dall-e-3", "together/flux-schnell", "google/nano-banana", "openai/gpt-image-1", "xai/grok-imagine-image", "xai/grok-imagine-image-pro"]).optional().describe("Model to use (default: dall-e-3 for generate, gpt-image-1 for edit). xai/grok-imagine-image is stylized and fast; xai/grok-imagine-image-pro is higher quality."),
+        model: z.enum(["zai/cogview-4", "openai/dall-e-3", "together/flux-schnell", "google/nano-banana", "openai/gpt-image-1", "openai/gpt-image-2", "xai/grok-imagine-image", "xai/grok-imagine-image-pro"]).optional().describe("Model to use (default: dall-e-3 for generate, gpt-image-2 for edit). xai/grok-imagine-image is stylized and fast; xai/grok-imagine-image-pro is higher quality; gpt-image-2 is the newest edit-capable model with stronger instruction following."),
         image: z.string().optional().describe("Source image for edit action: base64-encoded image or URL"),
         size: z.enum(["1024x1024", "1792x1024", "1024x1792"]).optional().default("1024x1024"),
         quality: z.enum(["standard", "hd"]).optional().default("standard"),
@@ -44,12 +45,12 @@ Edit models: openai/gpt-image-1 (default for edits)`,
             };
           }
           response = await imgClient.edit(prompt, image, {
-            model: (model || "openai/gpt-image-1") as "openai/gpt-image-1",
+            model: (model || "openai/gpt-image-2") as "openai/gpt-image-1" | "openai/gpt-image-2",
             size: size as "1024x1024" | "1792x1024" | "1024x1792",
           });
         } else {
           response = await imgClient.generate(prompt, {
-            model: (model || "openai/dall-e-3") as "openai/dall-e-3" | "together/flux-schnell" | "google/nano-banana" | "zai/cogview-4" | "xai/grok-imagine-image" | "xai/grok-imagine-image-pro",
+            model: (model || "openai/dall-e-3") as "openai/dall-e-3" | "together/flux-schnell" | "google/nano-banana" | "zai/cogview-4" | "openai/gpt-image-1" | "openai/gpt-image-2" | "xai/grok-imagine-image" | "xai/grok-imagine-image-pro",
             size: size as "1024x1024" | "1792x1024" | "1024x1792",
             quality: quality as "standard" | "hd",
           });
