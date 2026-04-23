@@ -83,7 +83,7 @@ Run `blockrun_wallet` to see your address. Send USDC on Base.
 | Coinbase | Send → USDC → Base network → paste address |
 | Bridge from Ethereum | [bridge.base.org](https://bridge.base.org) |
 
-$5 covers ~5,000 market queries, ~500 Exa searches, or ~250 image generations.
+$5 covers ~5,000 market queries, ~500 Exa searches, ~250 image generations, or ~30 Seedance 1.5-pro clips (5s).
 
 ---
 
@@ -91,14 +91,18 @@ $5 covers ~5,000 market queries, ~500 Exa searches, or ~250 image generations.
 
 | Tool | Data source | Cost |
 |------|-------------|------|
+| `blockrun_chat` | 55+ LLMs (GPT, Claude, Gemini, DeepSeek, Kimi K2.6, GLM, NVIDIA free tier, ...) with `mode` tier routing | per token |
+| `blockrun_image` | DALL-E 3, GPT Image 1/2, Grok Imagine, Flux, CogView-4, Nano Banana — generation + editing | $0.015–0.12 |
+| `blockrun_video` | xAI Grok Imagine Video + ByteDance Seedance 1.5/2.0/2.0-fast | $0.03–0.30/sec |
+| `blockrun_music` | MiniMax music generation | per track |
+| `blockrun_price` | Pyth-backed realtime + OHLC — crypto / FX / commodity (free), 12 stock markets (paid) | free or $0.001/call |
 | `blockrun_markets` | Polymarket, Kalshi, dFlow, Binance Futures | $0.001/query |
+| `blockrun_x` | X/Twitter — profiles, tweets, followers, mentions, search (AttentionVC) | per call |
 | `blockrun_exa` | Neural web search (Exa) — research, competitors, papers, URL content | $0.01/query |
-| `blockrun_search` | Web + news with citations | ~$0.01 |
-| `blockrun_twitter` | X/Twitter — profiles, tweets, trends, Grok sentiment | per token |
+| `blockrun_search` | Grok Live Search — web + news with citations | ~$0.025 per source |
 | `blockrun_dex` | Live DEX prices via DexScreener | free |
-| `blockrun_image` | DALL-E 3, Flux image generation + editing | $0.02–0.08 |
-| `blockrun_chat` | GPT-4o, Gemini, DeepSeek, 30+ models | per token |
-| `blockrun_wallet` | Balance, spending, agent budgets | free |
+| `blockrun_models` | Live catalogue of every LLM/image/video/music model + pricing | free |
+| `blockrun_wallet` | Balance, spending, agent budgets, setup QR | free |
 
 ---
 
