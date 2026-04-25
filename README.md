@@ -45,6 +45,19 @@ After BlockRun, it can. Each query costs fractions of a cent, billed from a loca
 
 ---
 
+## Showcase
+
+Posters generated through `blockrun_image` with `openai/gpt-image-2`. Each is a single API call routed through BlockRun, paid in USDC on Base.
+
+| | | |
+|:---:|:---:|:---:|
+| <img src="assets/posters/cornell-2026-popular-booth.png" width="320" alt="Thank you, Cornell — BlockRun at the Cornell Blockchain Conference 2026, packed booth"> | <img src="assets/posters/cornell-2026.png" width="320" alt="Thank you, Cornell — BlockRun at the Cornell Blockchain Conference 2026"> | <img src="skills/image-prompting/example-100t-poster.jpg" width="320" alt="100 Trillion Tokens served — synthwave milestone poster"> |
+| **Cornell Blockchain Conference 2026** — packed booth recap | **Cornell Blockchain Conference 2026** — quiet variant | **100 Trillion Tokens** — milestone synthwave poster |
+
+Prompts and a worked example for these are in [`skills/image-prompting/SKILL.md`](skills/image-prompting/SKILL.md).
+
+---
+
 ## Install
 
 **Claude Code (recommended)**
