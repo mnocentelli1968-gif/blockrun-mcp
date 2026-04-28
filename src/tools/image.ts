@@ -1,6 +1,7 @@
 // src/tools/image.ts
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
+import { PaymentError } from "@blockrun/llm";
 import { getImageClient } from "../utils/wallet.js";
 import { formatError } from "../utils/errors.js";
 
@@ -71,7 +72,7 @@ Edit models: openai/gpt-image-1, openai/gpt-image-2 (default for edits)`,
         };
       } catch (err) {
         const errMsg = err instanceof Error ? err.message : String(err);
-        if (errMsg.includes("balance") || errMsg.includes("payment") || errMsg.includes("402")) {
+        if (err instanceof PaymentError) {
           return {
             content: [{ type: "text", text: `Image generation requires payment. Run blockrun_wallet with action: "setup" for funding instructions.\nError: ${errMsg}` }],
             isError: true,
