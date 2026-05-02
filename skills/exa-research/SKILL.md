@@ -1,6 +1,19 @@
 ---
 name: exa-research
 description: Use when researching products, finding academic papers, discovering competitors, reading webpage content, or getting cited answers grounded in real web sources. Use over generic search when semantic relevance matters.
+triggers:
+  - "research"
+  - "web research"
+  - "find papers"
+  - "academic papers"
+  - "competitor discovery"
+  - "find similar sites"
+  - "exa search"
+  - "cited answer"
+  - "scrape webpage"
+  - "neural search"
+  - "semantic search"
+  - "look up sources"
 ---
 
 # Exa Research

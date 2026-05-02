@@ -1,6 +1,19 @@
 ---
 name: prediction-markets
 description: Use when user asks about event probabilities, prediction market odds, what people are betting on, Polymarket or Kalshi prices, or wants to find markets on a specific topic (elections, crypto, sports, macro events).
+triggers:
+  - "polymarket"
+  - "kalshi"
+  - "dflow"
+  - "prediction market"
+  - "event probability"
+  - "betting odds"
+  - "what are people betting on"
+  - "election odds"
+  - "crypto market odds"
+  - "binance futures"
+  - "yes/no market"
+  - "implied probability"
 ---
 
 # Prediction Markets

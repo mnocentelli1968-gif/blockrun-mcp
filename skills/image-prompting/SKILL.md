@@ -1,6 +1,19 @@
 ---
 name: image-prompting
 description: Use when generating or editing images via `blockrun_image` — especially with GPT Image 2, DALL-E 3, or Flux for posters, UI mockups, marketing assets, product shots, or anything with on-image text. Turns vague user requests ("make me a cool poster") into structured, text-accurate prompts that actually render what you asked for.
+triggers:
+  - "image prompt"
+  - "make a poster"
+  - "create poster"
+  - "ui mockup"
+  - "marketing asset"
+  - "product shot"
+  - "gpt image 2"
+  - "image with text"
+  - "typography poster"
+  - "social asset"
+  - "generate marketing image"
+  - "ai poster"
 ---
 
 # Image Prompting
