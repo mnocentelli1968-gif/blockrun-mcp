@@ -117,7 +117,7 @@ $5 covers ~5,000 market queries, ~500 Exa searches, ~250 image generations, or ~
 | `blockrun_video` | xAI Grok Imagine Video + ByteDance Seedance 1.5/2.0/2.0-fast | $0.03–0.30/sec |
 | `blockrun_music` | MiniMax music generation | per track |
 | `blockrun_price` | Pyth-backed realtime + OHLC — crypto / FX / commodity (free), 12 stock markets (paid) | free or $0.001/call |
-| `blockrun_markets` | Polymarket, Kalshi, dFlow, Binance Futures | $0.001/query |
+| `blockrun_markets` | Polymarket (markets, candles, trades, orderbooks, leaderboards, smart-wallet PnL/clusters, UMA oracle), Kalshi, Limitless, Opinion, Predict.Fun, dFlow, Binance Futures, cross-platform match + search | $0.001–0.005/query |
 | `blockrun_x` | X/Twitter — profiles, tweets, followers, mentions, search (AttentionVC) | per call |
 | `blockrun_exa` | Neural web search (Exa) — research, competitors, papers, URL content | $0.01/query |
 | `blockrun_search` | Grok Live Search — web + news with citations | ~$0.025 per source |
