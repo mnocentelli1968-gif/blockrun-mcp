@@ -10,8 +10,15 @@ export function registerMarketsTool(server: McpServer): void {
     {
       description: `Prediction market + derivatives data via Predexon aggregator. Tier 1 = $0.001/call, Tier 2 = $0.005/call.
 
+CANONICAL CROSS-VENUE (Tier 1) — Predexon v2 unified data layer:
+- markets — list canonical market/question containers with cross-venue Predexon IDs
+- markets/listings — venue-native executable listings flattened across canonical markets
+- outcomes/:predexon_id — resolve a canonical outcome ID to its market context + venue listings
+  Filter with ?venue=polymarket|kalshi|limitless|opinion|predictfun, ?status=, ?category=, ?league=, ?event_id=, ?pagination_key=
+
 POLYMARKET (Tier 1):
 - polymarket/events, polymarket/markets — list events/markets (filter, sort, paginate)
+- polymarket/markets/keyset, polymarket/events/keyset — same data, cursor-based keyset pagination (use ?pagination_key=)
 - polymarket/crypto-updown — crypto up/down markets
 - polymarket/market-price/:token_id — current/historical price
 - polymarket/candlesticks/:condition_id — OHLCV by market
@@ -30,7 +37,17 @@ POLYMARKET (Tier 2 — wallet/smart-money analytics):
 - polymarket/wallet/pnl/:wallet, .../positions/:wallet, .../volume-chart/:wallet
 - polymarket/wallets/profiles, polymarket/wallets/filter — batch + AND/OR filter
 - polymarket/market/:condition_id/smart-money, polymarket/markets/smart-activity
-- polymarket/wallet/identity, polymarket/wallet/identities-batch, polymarket/wallet/cluster
+
+WALLET IDENTITY & CLUSTERING (Tier 2) — cross-context labels + on-chain relationship graph:
+- polymarket/wallet/identity/:wallet — fetch identity + profile metadata for one wallet
+- polymarket/wallet/identities — POST { addresses: [...] } for bulk lookup (up to 200 wallets)
+- polymarket/wallet/:address/cluster — discover wallets connected via on-chain transfers + identity proofs
+
+SPORTS (Tier 1):
+- sports/categories — list available sports categories
+- sports/markets — list sports markets grouped by game (filter ?league=, ?sport_type=, ?status=, ?venue=)
+- sports/markets/:game_id — single sports game with all venue outcomes
+- sports/outcomes/:predexon_id — equivalent sports outcomes across venues for a Predexon ID
 
 KALSHI (Tier 1): kalshi/markets, kalshi/trades, kalshi/orderbooks
 LIMITLESS / OPINION / PREDICT.FUN (Tier 1): {platform}/markets, {platform}/orderbooks
@@ -41,7 +58,7 @@ CROSS-PLATFORM:
 - matching-markets, matching-markets/pairs — equivalent markets across Polymarket+Kalshi (T2)
 - markets/search — search across all platforms in one call (T2)
 
-Pass query params via 'params' (GET). Use 'body' only for POST endpoints.`,
+Pass query params via 'params' (GET). Use 'body' only for POST endpoints (e.g. polymarket/wallet/identities).`,
       inputSchema: {
         path: z.string().describe("Endpoint path, e.g. 'polymarket/events', 'kalshi/markets/KXBTC-25MAR14', 'polymarket/wallet/0xabc...', 'markets/search'"),
         params: z.record(z.string(), z.string()).optional().describe("Query parameters for GET requests (e.g. { limit: '20', active: 'true' })"),
