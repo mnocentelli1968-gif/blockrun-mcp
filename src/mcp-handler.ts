@@ -41,13 +41,16 @@ export function initializeMcpServer(server: McpServer): void {
     "wallet",
     "blockrun://wallet",
     { description: "Wallet address and status", mimeType: "application/json" },
-    async () => ({
-      contents: [{
-        uri: "blockrun://wallet",
-        mimeType: "application/json",
-        text: JSON.stringify(getWalletInfo(), null, 2),
-      }],
-    })
+    async () => {
+      const info = await getWalletInfo();
+      return {
+        contents: [{
+          uri: "blockrun://wallet",
+          mimeType: "application/json",
+          text: JSON.stringify(info, null, 2),
+        }],
+      };
+    }
   );
 
   server.registerResource(

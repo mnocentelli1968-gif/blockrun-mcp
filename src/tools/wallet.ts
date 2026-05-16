@@ -2,7 +2,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import type { BudgetState } from "../types.js";
-import { getWalletInfo, getUsdcBalance } from "../utils/wallet.js";
+import { getWalletInfo, getUsdcBalance, getChain } from "../utils/wallet.js";
 import { generateQrPng, openQrInViewer } from "../utils/qr.js";
 import { formatError } from "../utils/errors.js";
 
@@ -45,8 +45,9 @@ Do NOT call this for actual AI queries — use blockrun_chat for that.`,
       },
     },
     async ({ action, budget_action, budget_amount, agent_id, agent_limit }) => {
-      const info = getWalletInfo();
+      const info = await getWalletInfo();
       const address = info.address;
+      const chain = getChain();
 
       // Handle budget action
       if (action === "budget") {
@@ -136,10 +137,13 @@ Do NOT call this for actual AI queries — use blockrun_chat for that.`,
       // Handle QR action
       if (action === "qr") {
         try {
-          const qrPath = await generateQrPng(address);
+          const qrPath = await generateQrPng(address, chain);
           await openQrInViewer(qrPath);
+          const scanNote = chain === "solana"
+            ? "Scan with a Solana wallet (Phantom, Solflare) to send USDC on Solana."
+            : "Scan with MetaMask to send USDC on Base.";
           return {
-            content: [{ type: "text", text: `QR code opened! Scan with MetaMask to send USDC on Base.\n\nAddress: ${address}\nQR saved: ${qrPath}` }],
+            content: [{ type: "text", text: `QR code opened! ${scanNote}\n\nAddress: ${address}\nQR saved: ${qrPath}` }],
           };
         } catch (err) {
           return {
@@ -151,17 +155,50 @@ Do NOT call this for actual AI queries — use blockrun_chat for that.`,
 
       // Handle setup action
       if (action === "setup") {
-        // Generate and open QR
         let qrMessage = "";
         try {
-          const qrPath = await generateQrPng(address);
+          const qrPath = await generateQrPng(address, chain);
           await openQrInViewer(qrPath);
           qrMessage = `\nQR code opened for scanning! (${qrPath})`;
         } catch {
           qrMessage = "\n(QR generation failed - use address above)";
         }
 
-        const text = `
+        const text = chain === "solana"
+          ? `
+================================================================================
+                        BLOCKRUN WALLET SETUP (SOLANA)
+================================================================================
+
+Your Solana wallet address: ${address}
+${qrMessage}
+
+HOW TO FUND YOUR WALLET:
+------------------------
+
+Option 1: Transfer from Coinbase
+  1. Open Coinbase app or website
+  2. Go to Send/Receive → Select USDC
+  3. Choose "Solana" network (important!)
+  4. Paste: ${address}
+  5. Send $1-5 to start
+
+Option 2: Transfer from any Solana wallet (Phantom, Solflare, Backpack)
+  - Send USDC (SPL) to: ${address}
+  - Make sure to use Solana network, not EVM
+
+Option 3: Bridge from other chains
+  https://portalbridge.com → Bridge USDC to Solana → Send to address above
+
+VERIFY BALANCE: https://solscan.io/account/${address}
+
+PRICING (pay per use):
+  - GPT-4o: ~$0.005/request | Claude Sonnet: ~$0.003/request
+  - Gemini Flash: ~$0.0001/request | Full pricing: https://blockrun.ai/pricing
+
+SECURITY: Private key stored at ~/.blockrun/.solana-session (never leaves your machine)
+================================================================================`
+          : `
 ================================================================================
                         BLOCKRUN WALLET SETUP
 ================================================================================
@@ -202,9 +239,10 @@ SECURITY: Private key stored at ~/.blockrun/.session (never leaves your machine)
       const balanceStr = balance !== null ? `$${balance.toFixed(6)} USDC` : "Unable to fetch";
       const lowBalance = balance !== null && balance < 1;
 
+      const explorerLabel = chain === "solana" ? "Solscan" : "Basescan";
       const text = `Wallet: ${address}
 Balance: ${balanceStr}${lowBalance ? " (low - add funds)" : ""}
-Network: Base | View: ${info.basescanUrl}
+Network: ${info.network} | View: ${info.explorerUrl}
 ${info.isNew ? "\nNEW WALLET - Run with action: 'setup' for funding instructions" : ""}`;
 
       return {
@@ -215,7 +253,8 @@ ${info.isNew ? "\nNEW WALLET - Run with action: 'setup' for funding instructions
           network: info.network,
           chainId: info.chainId,
           isNew: info.isNew,
-          basescanUrl: info.basescanUrl,
+          explorerUrl: info.explorerUrl,
+          explorerLabel,
         },
       };
     }

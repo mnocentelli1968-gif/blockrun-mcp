@@ -1,6 +1,7 @@
 // src/tools/chat.ts
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
+import { LLMClient } from "@blockrun/llm";
 import { getClient } from "../utils/wallet.js";
 import { formatError } from "../utils/errors.js";
 import { MODEL_TIERS, type RoutingMode } from "../utils/constants.js";
@@ -52,8 +53,14 @@ Run blockrun_models to see all 41+ models with pricing.`,
         };
       }
 
-      // ClawRouter smart routing
+      // ClawRouter smart routing (EVM/Base only)
       if (routing === "smart") {
+        if (!(llm instanceof LLMClient)) {
+          return {
+            content: [{ type: "text", text: "Smart routing (ClawRouter) is not available on Solana. Use a specific model or mode instead." }],
+            isError: true,
+          };
+        }
         try {
           const result = await llm.smartChat(message, {
             system,

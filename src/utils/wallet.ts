@@ -1,42 +1,62 @@
 // src/utils/wallet.ts
-// Use the SDK's wallet management directly — it handles scanning, fallback, and creation properly.
+import fs from "node:fs";
 import {
   LLMClient,
   ImageClient,
   PriceClient,
+  SolanaLLMClient,
   getOrCreateWallet,
   getPaymentLinks,
   formatWalletCreatedMessage,
   formatNeedsFundingMessage,
+  SOLANA_WALLET_FILE_PATH,
 } from "@blockrun/llm";
 
-let _client: LLMClient | null = null;
+export type ApiClient = LLMClient | SolanaLLMClient;
+
+let _evmClient: LLMClient | null = null;
 let _imageClient: ImageClient | null = null;
 let _priceClient: PriceClient | null = null;
-let _walletInfo: { address: string; privateKey: string; isNew: boolean } | null = null;
+let _evmWalletInfo: { address: string; privateKey: string; isNew: boolean } | null = null;
+let _solanaClient: SolanaLLMClient | null = null;
 
-function ensureWallet() {
-  if (!_walletInfo) {
-    // SDK handles: env var → scan ~/.<provider>/wallet.json → .session → wallet.key → create new
-    _walletInfo = getOrCreateWallet();
-    if (_walletInfo.isNew) {
-      console.error(formatWalletCreatedMessage(_walletInfo.address));
+export function getChain(): "base" | "solana" {
+  if (process.env.SOLANA_WALLET_KEY) return "solana";
+  try {
+    if (fs.existsSync(SOLANA_WALLET_FILE_PATH)) return "solana";
+  } catch { /* ignore */ }
+  return "base";
+}
+
+function ensureEvmWallet() {
+  if (!_evmWalletInfo) {
+    _evmWalletInfo = getOrCreateWallet();
+    if (_evmWalletInfo.isNew) {
+      console.error(formatWalletCreatedMessage(_evmWalletInfo.address));
     }
   }
-  return _walletInfo;
+  return _evmWalletInfo;
 }
 
 export function getOrCreateWalletKey(): `0x${string}` {
-  const info = ensureWallet();
+  const info = ensureEvmWallet();
   return info.privateKey as `0x${string}`;
 }
 
-export function getClient(): LLMClient {
-  if (!_client) {
-    const privateKey = getOrCreateWalletKey();
-    _client = new LLMClient({ privateKey });
+export function getClient(): ApiClient {
+  if (getChain() === "solana") {
+    if (!_solanaClient) {
+      _solanaClient = new SolanaLLMClient(
+        process.env.SOLANA_WALLET_KEY ? { privateKey: process.env.SOLANA_WALLET_KEY } : undefined
+      );
+    }
+    return _solanaClient;
   }
-  return _client;
+  if (!_evmClient) {
+    const privateKey = getOrCreateWalletKey();
+    _evmClient = new LLMClient({ privateKey });
+  }
+  return _evmClient;
 }
 
 export function getImageClient(): ImageClient {
@@ -55,16 +75,29 @@ export function getPriceClient(): PriceClient {
   return _priceClient;
 }
 
-export function getWalletInfo() {
-  const info = ensureWallet();
+export async function getWalletInfo() {
+  if (getChain() === "solana") {
+    const client = getClient() as SolanaLLMClient;
+    const address = await client.getWalletAddress();
+    return {
+      address,
+      network: "Solana" as const,
+      chainId: null as number | null,
+      currency: "USDC",
+      isNew: false,
+      explorerUrl: `https://solscan.io/account/${address}`,
+      fundingUrl: "https://sol.blockrun.ai",
+    };
+  }
+  const info = ensureEvmWallet();
   const links = getPaymentLinks(info.address);
   return {
     address: info.address,
-    network: "Base",
-    chainId: 8453,
+    network: "Base" as const,
+    chainId: 8453 as number | null,
     currency: "USDC",
     isNew: info.isNew,
-    basescanUrl: links.basescan,
+    explorerUrl: links.basescan,
     fundingUrl: links.blockrun,
   };
 }
@@ -72,6 +105,12 @@ export function getWalletInfo() {
 export { formatNeedsFundingMessage };
 
 export async function getUsdcBalance(address: string): Promise<number | null> {
+  if (getChain() === "solana") {
+    try {
+      const client = getClient() as SolanaLLMClient;
+      return await client.getBalance();
+    } catch { return null; }
+  }
   const USDC_ADDRESS = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
   const BASE_RPC_URLS = [
     "https://mainnet.base.org",
