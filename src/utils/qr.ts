@@ -2,9 +2,9 @@
 import QRCode from "qrcode";
 import open from "open";
 import * as fs from "fs";
+import sharp from "sharp";
 import { WALLET_DIR, QR_FILE, USDC_ADDRESS, BASE_CHAIN_ID } from "./constants.js";
 
-// USDC mint address on Solana mainnet
 const SOLANA_USDC_MINT = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
 
 export function getEip681Uri(address: string, amountUsdc: number = 1.0): string {
@@ -16,20 +16,60 @@ export function getSolanaPayUri(address: string, amountUsdc: number = 1.0): stri
   return `solana:${address}?spl-token=${SOLANA_USDC_MINT}&amount=${amountUsdc}&label=BlockRun`;
 }
 
+// Solana gradient ◎ logo as SVG (purple → green, Solana brand colors)
+function buildSolanaLogoSvg(size: number): string {
+  const half = size / 2;
+  return `<svg width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#9945FF"/>
+      <stop offset="100%" style="stop-color:#14F195"/>
+    </linearGradient>
+    <clipPath id="c"><circle cx="${half}" cy="${half}" r="${half}"/></clipPath>
+  </defs>
+  <circle cx="${half}" cy="${half}" r="${half}" fill="url(#g)" clip-path="url(#c)"/>
+  <text x="${half}" y="${half + 14}" font-size="40" font-weight="bold" fill="white"
+    font-family="Arial,sans-serif" text-anchor="middle">◎</text>
+</svg>`;
+}
+
+async function overlayLogo(qrBuf: Buffer, chain: "base" | "solana", qrSize: number): Promise<Buffer> {
+  if (chain !== "solana") return qrBuf;
+
+  const logoSize = Math.round(qrSize * 0.18);
+  const pad = Math.round(logoSize * 0.08);
+
+  const logoBuf = await sharp(Buffer.from(buildSolanaLogoSvg(logoSize)))
+    .resize(logoSize, logoSize)
+    .extend({ top: pad, bottom: pad, left: pad, right: pad, background: { r: 255, g: 255, b: 255, alpha: 1 } })
+    .toBuffer();
+
+  const totalSize = logoSize + pad * 2;
+  const offset = Math.round((qrSize - totalSize) / 2);
+
+  return sharp(qrBuf)
+    .composite([{ input: logoBuf, left: offset, top: offset }])
+    .toBuffer();
+}
+
 export async function generateQrPng(address: string, chain: "base" | "solana" = "base"): Promise<string> {
   const uri = chain === "solana" ? getSolanaPayUri(address) : getEip681Uri(address);
+  const qrSize = 400;
 
   if (!fs.existsSync(WALLET_DIR)) {
     fs.mkdirSync(WALLET_DIR, { recursive: true, mode: 0o700 });
   }
 
-  await QRCode.toFile(QR_FILE, uri, {
+  const qrBuf = await QRCode.toBuffer(uri, {
     type: "png",
-    width: 400,
+    width: qrSize,
     margin: 2,
     errorCorrectionLevel: "H",
     color: { dark: "#000000", light: "#FFFFFF" },
   });
+
+  const finalBuf = await overlayLogo(qrBuf, chain, qrSize);
+  fs.writeFileSync(QR_FILE, finalBuf);
 
   return QR_FILE;
 }
