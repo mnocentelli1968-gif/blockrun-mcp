@@ -1,3 +1,5 @@
+import { getChain } from "./wallet.js";
+
 export function formatError(message: string): string {
   const msgLower = message.toLowerCase();
 
@@ -12,12 +14,14 @@ export function formatError(message: string): string {
   let errorText = `Error: ${message}`;
 
   if (isServerError) {
-    errorText += `\n\nThis is a temporary API issue. The xAI/Grok API may be experiencing problems.` +
+    errorText += `\n\nThis is a temporary API issue. The API may be experiencing problems.` +
       `\nTry again in a few minutes, or use a different model (e.g., openai/gpt-4o).`;
   } else if (isPaymentError) {
+    const chain = getChain();
+    const network = chain === "solana" ? "Solana" : "Base";
     errorText += `\n\nThis error usually means your wallet needs funding.\n` +
       `Run blockrun_wallet with action: "setup" to get funding instructions.\n\n` +
-      `Quick fix: Send USDC to your wallet on Base network.`;
+      `Quick fix: Send USDC to your wallet on ${network} network.`;
   }
 
   return errorText;

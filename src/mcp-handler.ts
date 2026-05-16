@@ -17,6 +17,7 @@ import { registerPriceTool } from "./tools/price.js";
 import { registerTwitterTool } from "./tools/twitter.js";
 import { registerDexTool } from "./tools/dex.js";
 import { registerModalTool } from "./tools/modal.js";
+import { registerPhoneTool } from "./tools/phone.js";
 export function initializeMcpServer(server: McpServer): void {
   const budget: BudgetState = { limit: null, spent: 0, calls: 0, agents: new Map() };
   const modelCache: { models: Model[] | null } = { models: null };
@@ -35,6 +36,7 @@ export function initializeMcpServer(server: McpServer): void {
   registerTwitterTool(server);
   registerDexTool(server);
   registerModalTool(server);
+  registerPhoneTool(server);
 
   // Register resources
   server.registerResource(
