@@ -6,6 +6,7 @@ import {
   PriceClient,
   SolanaLLMClient,
   getOrCreateWallet,
+  loadSolanaWallet,
   getPaymentLinks,
   formatWalletCreatedMessage,
   formatNeedsFundingMessage,
@@ -46,9 +47,8 @@ export function getOrCreateWalletKey(): `0x${string}` {
 export function getClient(): ApiClient {
   if (getChain() === "solana") {
     if (!_solanaClient) {
-      _solanaClient = new SolanaLLMClient(
-        process.env.SOLANA_WALLET_KEY ? { privateKey: process.env.SOLANA_WALLET_KEY } : undefined
-      );
+      const privateKey = process.env.SOLANA_WALLET_KEY || loadSolanaWallet() || undefined;
+      _solanaClient = new SolanaLLMClient(privateKey ? { privateKey } : undefined);
     }
     return _solanaClient;
   }
